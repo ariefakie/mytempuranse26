@@ -1852,6 +1852,23 @@ function renderConfig() {
   }
 
   document.getElementById('pageContent').innerHTML = `
+    <!-- Link to Import Page -->
+    <div class="card" style="margin-bottom:20px;background:linear-gradient(135deg, rgba(16,185,129,0.1), rgba(6,182,212,0.1));border:1px solid rgba(16,185,129,0.3)">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px;flex-wrap:wrap;gap:16px">
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg, #10b981, #06b6d4);display:flex;align-items:center;justify-content:center;font-size:24px">📥</div>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:var(--text)">Import Data dari CSV</div>
+            <div style="font-size:13px;color:var(--text-muted)">Upload file CSV untuk import data ke database Supabase</div>
+          </div>
+        </div>
+        <a href="import.html" target="_blank" class="btn-sm btn-primary-sm" style="text-decoration:none;padding:10px 20px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Buka Halaman Import
+        </a>
+      </div>
+    </div>
+
     <div class="grid-3" style="margin-bottom:24px">
       <!-- Card 1: Progres Lapangan -->
       <div class="card" style="display:flex;flex-direction:column;justify-content:space-between;min-height:260px">
@@ -1878,7 +1895,7 @@ function renderConfig() {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
             Biodata Petugas (XLSX)
           </div>
-          <p class="card-sub" style="margin-top:8px;line-height:1.6">Unggah berkas <strong>Biodata Petugas.xlsx</strong> terbaru untuk memperbarui data biodata PML dan PPL.</p>
+          <p class="card-sub" style="margin-top:8px;line-height:1.6">Unghah berkas <strong>Biodata Petugas.xlsx</strong> terbaru untuk memperbarui data biodata PML dan PPL.</p>
         </div>
         <div style="margin-top:16px">
           <input type="file" id="fileBiodata" accept=".xlsx" style="display:none" onchange="updateFileLabel('fileBiodata', 'lblBiodata')" />
