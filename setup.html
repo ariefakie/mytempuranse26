@@ -100,12 +100,24 @@
         DROP TABLE IF EXISTS biodata CASCADE;
 
         CREATE TABLE biodata (
-          id SERIAL PRIMARY KEY, nama TEXT, email TEXT UNIQUE, posisi TEXT, no_telp TEXT,
-          alamat TEXT, alamat_desa TEXT, ttl TEXT, umur INTEGER, jenis_kelamin TEXT,
-          pendidikan TEXT, pekerjaan TEXT, punya_kendaraan TEXT, bisa_motor TEXT,
-          punya_hp_android TEXT, merk_hp TEXT, tipe_hp TEXT, berpengalaman_capi TEXT,
-          pernah_se TEXT, status_nik TEXT, created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+          id SERIAL PRIMARY KEY,
+          sobad_id TEXT,
+          email TEXT,
+          nm_lengkap TEXT,
+          jabatan TEXT,
+          alamat TEXT,
+          nmkab TEXT,
+          nmkec TEXT,
+          nmdesa TEXT,
+          kdkab TEXT,
+          kdkec TEXT,
+          kddesa TEXT,
+          ttl TEXT,
+          umur INTEGER,
+          kelamin TEXT,
+          pendidikan TEXT,
+          pekerjaan TEXT,
+          created_at TIMESTAMP DEFAULT NOW()
         );
         ALTER TABLE biodata ENABLE ROW LEVEL SECURITY;
         CREATE POLICY "r" ON biodata FOR SELECT USING (true);
