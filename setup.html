@@ -157,10 +157,32 @@
         if (!res.ok) throw new Error('RPC failed');
         log('Tabel dibuat!', 'success');
       } catch (e) {
-        log('RPC tidak tersedia. Buka link untuk setup manual:', 'warning');
-        log('https://supabase.com/dashboard/project/ebyzqfvfursatmeqdlwc/sql/new', 'info');
-        log('\nCopy SQL ini ke SQL Editor:', 'warning');
-        log(sql, 'info');
+        log('RPC tidak tersedia. Klik tombol di bawah untuk auto-setup:', 'warning');
+        log('\n1. Klik "📋 Copy SQL"', 'info');
+        log('2. Klik "🔗 Buka SQL Editor"', 'info');
+        log('3. Paste SQL di editor', 'info');
+        log('4. Klik RUN\n', 'info');
+
+        // Show buttons
+        const btnHtml = `
+          <div style="margin-top: 16px; display: flex; gap: 10px;">
+            <button onclick="copySQL()" style="padding: 12px 20px; background: #6366f1; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">📋 Copy SQL</button>
+            <button onclick="openSQL()" style="padding: 12px 20px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">🔗 Buka SQL Editor</button>
+          </div>
+          <div id="copyStatus" style="margin-top: 8px; font-size: 12px; color: #4ade80; display: none;">✅ SQL berhasil di-copy!</div>
+        `;
+        box.innerHTML += btnHtml;
+
+        window.copySQL = function() {
+          navigator.clipboard.writeText(sql).then(() => {
+            document.getElementById('copyStatus').style.display = 'block';
+          });
+        };
+
+        window.openSQL = function() {
+          window.open('https://supabase.com/dashboard/project/ebyzqfvfursatmeqdlwc/sql/new', '_blank');
+        };
+
         btn.disabled = false; btn.textContent = '🚀 Setup Database';
         return;
       }
