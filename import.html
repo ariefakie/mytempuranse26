@@ -214,10 +214,10 @@
           return;
         }
 
-        const buffer = await response.arrayBuffer();
         currentFileName = fileName;
 
         if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+          const buffer = await response.arrayBuffer();
           parseXLSX(buffer, fileName);
         } else {
           const text = await response.text();
@@ -375,6 +375,7 @@
       let successCount = 0;
       let errorCount = 0;
       let skipCount = 0;
+      let firstError = null;
 
       log(`[INFO] Importing to: ${selectedTable}`, 'info');
       log(`[INFO] Total records: ${parsedData.length}\n`, 'info');
@@ -405,19 +406,38 @@
             } else if (res.status === 409) {
               skipCount++;
             } else {
+              const errText = await res.text();
               errorCount++;
+              if (!firstError) firstError = errText;
             }
           } catch (e) {
             errorCount++;
+            if (!firstError) firstError = e.message;
           }
         }
 
-        log(`[INFO] Batch ${batchNum} done`, 'success');
+        log(`[INFO] Batch ${batchNum} done (Sukses:${successCount}, Error:${errorCount})`, successCount > 0 ? 'success' : 'warning');
       }
 
       log('');
       log('========== COMPLETE ==========', 'success');
       log(`Total: ${parsedData.length} | Success: ${successCount} | Skip: ${skipCount} | Error: ${errorCount}`, successCount > 0 ? 'success' : 'error');
+
+      if (errorCount === parsedData.length && firstError) {
+        log('\n[!] SEMUA GAGAL! Kemungkinan penyebab:', 'warning');
+        if (firstError.includes('does not exist')) {
+          log('[!] Tabel tidak ada - Jalankan setup.html dulu!', 'error');
+        } else if (firstError.includes('42703') || firstError.includes('column')) {
+          log('[!] Kolom tidak cocok - Cek header CSV/XLSX', 'error');
+        } else if (firstError.includes('violates')) {
+          log('[!] Policy blocked - Cek RLS di Supabase', 'error');
+        } else {
+          log(`[ERROR] Detail: ${firstError.substring(0, 200)}`, 'error');
+        }
+        log('\n[!] Tips:', 'warning');
+        log('1. Buka setup.html dan jalankan SQL', 'warning');
+        log('2. Atau cek RLS di Supabase Dashboard', 'warning');
+      }
 
       document.getElementById('progressText').textContent = 'Selesai!';
       document.getElementById('btnImport').disabled = false;
