@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debug Headers</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body { font-family: Arial; background: #1a1a2e; color: white; padding: 20px; }
+    h1 { color: #818cf8; }
+    pre { background: #0f0f1a; padding: 20px; border-radius: 8px; overflow-x: auto; }
+    .file-input { margin: 20px 0; }
+    .match { color: #4ade80; }
+    .mismatch { color: #f87171; }
+    table { border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #333; padding: 8px 12px; text-align: left; }
+    th { background: #333; }
+  </style>
+</head>
+<body>
+  <h1>🔍 Debug Kolom Excel vs Database</h1>
+
+  <input type="file" id="fileInput" accept=".xlsx,.csv" class="file-input">
+
+  <h2>Header Excel:</h2>
+  <pre id="excelHeaders">Upload file dulu...</pre>
+
+  <h2>Kolom Database:</h2>
+  <pre id="dbHeaders">biodata:
+- id
+- nama
+- email
+- posisi
+- no_telp
+- alamat
+- alamat_desa
+- ttl
+- umur
+- jenis_kelamin
+- pendidikan
+- pekerjaan
+- punya_kendaraan
+- bisa_motor
+- punya_hp_android
+- merk_hp
+- tipe_hp
+- berpengalaman_capi
+- pernah_se
+- status_nik
+- created_at
+- updated_at
+
+alokasi:
+- id
+- idsubsls
+- nmkec
+- nmdes
+- nmsls
+- kddesa
+- kdsls
+- pml
+- ppl
+- email_pengawas
+- email_pencacah
+- umkm
+- fasih
+- flag_perubahan
+- created_at
+
+progres:
+- id
+- kode_identitas
+- nama_usaha
+- nama_sls
+- alamat
+- nib
+- skala_usaha
+- jumlah_usaha
+- kode_sls
+- kode_desa
+- desa
+- latitude
+- longitude
+- mode
+- status
+- keterangan
+- petugas
+- created_at</pre>
+
+  <h2>Comparison:</h2>
+  <div id="comparison"></div>
+
+  <script>
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      let headers = [];
+
+      if (file.name.endsWith('.csv')) {
+        const text = await file.text();
+        const firstLine = text.split('\n')[0];
+        headers = firstLine.split(',').map(h => h.trim().replace(/"/g, ''));
+      } else {
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        headers = json[0].map(h => String(h).trim());
+      }
+
+      document.getElementById('excelHeaders').textContent = headers.join('\n');
+
+      // Show comparison
+      const dbHeaders = {
+        biodata: ['id','nama','email','posisi','no_telp','alamat','alamat_desa','ttl','umur','jenis_kelamin','pendidikan','pekerjaan','punya_kendaraan','bisa_motor','punya_hp_android','merk_hp','tipe_hp','berpengalaman_capi','pernah_se','status_nik'],
+        alokasi: ['idsubsls','nmkec','nmdes','nmsls','kddesa','kdsls','pml','ppl','email_pengawas','email_pencacah','umkm','fasih','flag_perubahan'],
+        progres: ['kode_identitas','nama_usaha','nama_sls','alamat','nib','skala_usaha','jumlah_usaha','kode_sls','kode_desa','desa','latitude','longitude','mode','status','keterangan','petugas']
+      };
+
+      let html = '<table><tr><th>Excel Header</th><th>Match?</th><th>Suggested Column</th></tr>';
+      headers.forEach(h => {
+        const normalized = h.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        const matches = Object.values(dbHeaders).flat().some(db => db.toLowerCase() === normalized);
+        html += `<tr><td>${h}</td><td class="${matches ? 'match' : 'mismatch'}">${matches ? '✅' : '❌'}</td><td>${normalized}</td></tr>`;
+      });
+      html += '</table>';
+      document.getElementById('comparison').innerHTML = html;
+    });
+  </script>
+</body>
+</html>
