@@ -424,17 +424,20 @@
       log(`Total: ${parsedData.length} | Success: ${successCount} | Skip: ${skipCount} | Error: ${errorCount}`, successCount > 0 ? 'success' : 'error');
 
       if (errorCount === parsedData.length && firstError) {
-        log('\n[!] SEMUA GAGAL! Kemungkinan penyebab:', 'warning');
-        if (firstError.includes('does not exist')) {
+        log('\n[!] DETAIL ERROR:', 'error');
+        log(firstError.substring(0, 300), 'error');
+        log('\n[!] Kemungkinan penyebab:', 'warning');
+        if (firstError.includes('does not exist') || firstError.includes('relation') || firstError.includes('table')) {
           log('[!] Tabel tidak ada - Jalankan setup.html dulu!', 'error');
-        } else if (firstError.includes('42703') || firstError.includes('column')) {
-          log('[!] Kolom tidak cocok - Cek header CSV/XLSX', 'error');
-        } else if (firstError.includes('violates')) {
-          log('[!] Policy blocked - Cek RLS di Supabase', 'error');
-        } else {
-          log(`[ERROR] Detail: ${firstError.substring(0, 200)}`, 'error');
+        } else if (firstError.includes('42703') || firstError.includes('column') || firstError.includes('undefined')) {
+          log('[!] Kolom tidak cocok - Cek header Excel vs DB', 'error');
+          log('[!] Jalankan debug.html untuk cek', 'warning');
+        } else if (firstError.includes('violates') || firstError.includes('policy') || firstError.includes('RLS') || firstError.includes('403')) {
+          log('[!] RLS blocking - Cek policies di Supabase', 'error');
+        } else if (firstError.includes('401') || firstError.includes('Invalid API') || firstError.includes('key')) {
+          log('[!] API Key invalid - Cek anon key', 'error');
         }
-        log('\n[!] Tips:', 'warning');
+        log('\n[!] Langkah:', 'warning');
         log('1. Buka setup.html dan jalankan SQL', 'warning');
         log('2. Atau cek RLS di Supabase Dashboard', 'warning');
       }
