@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Setup Database - SE2026 Tempuran</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -17,8 +18,7 @@
     .card p { color: #94a3b8; margin-bottom: 16px; line-height: 1.6; }
     .form-group { margin-bottom: 16px; }
     .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
-    .form-group textarea, .form-group input { width: 100%; padding: 12px 16px; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; background: rgba(15, 15, 25, 0.8); color: #e2e8f0; font-size: 14px; font-family: monospace; box-sizing: border-box; }
-    .form-group textarea { min-height: 60px; resize: vertical; }
+    .form-group textarea { width: 100%; padding: 12px 16px; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; background: rgba(15, 15, 25, 0.8); color: #e2e8f0; font-size: 14px; font-family: monospace; min-height: 60px; resize: vertical; box-sizing: border-box; }
     .form-group small { display: block; margin-top: 6px; color: #64748b; font-size: 12px; }
     .btn { padding: 14px 28px; border: none; border-radius: 10px; font-weight: 700; font-size: 15px; cursor: pointer; transition: all 0.3s; width: 100%; box-sizing: border-box; }
     .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
@@ -35,6 +35,28 @@
     .success-box p { color: #94a3b8; margin-bottom: 20px; }
     .note { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 12px; margin-top: 16px; font-size: 12px; color: #fbbf24; }
     .hidden { display: none; }
+
+    /* Dynamic Import Styles */
+    .drop-zone { border: 2px dashed rgba(99, 102, 241, 0.5); border-radius: 12px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s; margin-bottom: 16px; }
+    .drop-zone:hover, .drop-zone.dragover { border-color: #6366f1; background: rgba(99, 102, 241, 0.1); }
+    .drop-zone-icon { font-size: 48px; margin-bottom: 12px; }
+    .drop-zone p { color: #94a3b8; margin-bottom: 8px; }
+    .drop-zone small { color: #64748b; font-size: 12px; }
+    .file-input { display: none; }
+    .preview-table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 12px; }
+    .preview-table th, .preview-table td { border: 1px solid rgba(99, 102, 241, 0.3); padding: 8px; text-align: left; }
+    .preview-table th { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
+    .preview-table tr:nth-child(even) { background: rgba(15, 15, 25, 0.5); }
+    .preview-info { background: rgba(99, 102, 241, 0.1); border-radius: 8px; padding: 12px; margin-top: 12px; font-size: 13px; }
+    .preview-info span { color: #818cf8; font-weight: 600; }
+    .btn-secondary { background: linear-gradient(135deg, #475569, #334155); color: white; margin-top: 12px; }
+    .btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(71, 85, 105, 0.4); }
+    .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .tab { padding: 10px 20px; background: rgba(30, 30, 50, 0.8); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 8px; cursor: pointer; transition: all 0.3s; color: #94a3b8; }
+    .tab:hover { border-color: #6366f1; color: #e2e8f0; }
+    .tab.active { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border-color: transparent; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
   </style>
 </head>
 <body>
@@ -54,7 +76,43 @@
         <small>Contoh: sb_secret_Q_VTCCswLEqv39Zm8lxpWA_b_PVtFPx</small>
       </div>
 
-      <button class="btn btn-primary" id="btnSetup" onclick="runSetup()">🚀 Setup Database</button>
+      <!-- Tabs -->
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('setup')">🛠️ Setup Default</div>
+        <div class="tab" onclick="switchTab('dynamic')">📊 Import Excel</div>
+      </div>
+
+      <!-- Setup Default Tab -->
+      <div class="tab-content active" id="tab-setup">
+        <button class="btn btn-primary" id="btnSetup" onclick="runSetup()">🚀 Setup Database</button>
+      </div>
+
+      <!-- Dynamic Import Tab -->
+      <div class="tab-content" id="tab-dynamic">
+        <p style="margin-bottom: 16px;">Upload file Excel (.xlsx) atau CSV untuk membuat tabel otomatis.</p>
+
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+          <div class="drop-zone-icon">📁</div>
+          <p>Drag & drop file di sini</p>
+          <small>atau klik untuk pilih file</small>
+          <small>Format: .xlsx, .csv (max 10MB)</small>
+        </div>
+        <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(event)">
+
+        <div id="filePreview" style="display: none;">
+          <div class="preview-info">
+            📄 <span id="fileName">-</span><br>
+            📊 <span id="rowCount">0</span> baris, <span id="colCount">0</span> kolom
+          </div>
+          <div style="overflow-x: auto; max-height: 200px;">
+            <table class="preview-table" id="previewTable"></table>
+          </div>
+          <button class="btn btn-primary" id="btnImport" onclick="runDynamicImport()">🚀 Buat Tabel & Import</button>
+          <button class="btn btn-secondary" onclick="clearFile()">🗑️ Hapus</button>
+        </div>
+
+        <div class="log" id="logBox2" style="display: none;"></div>
+      </div>
 
       <div class="log" id="logBox" style="display: none;"></div>
 
@@ -93,6 +151,7 @@
 
       log('MEMULAI SETUP...', 'info');
 
+      // SQL based on actual file headers
       const sql = `
         DROP TABLE IF EXISTS active_sls CASCADE;
         DROP TABLE IF EXISTS progres CASCADE;
@@ -115,8 +174,8 @@
           ttl TEXT,
           umur INTEGER,
           kelamin TEXT,
-          Pendidikan TEXT,
-          Pekerjaan TEXT,
+          "Pendidikan" TEXT,
+          "Pekerjaan" TEXT,
           nohp TEXT,
           created_at TIMESTAMP DEFAULT NOW()
         );
@@ -126,10 +185,28 @@
         CREATE POLICY "u" ON biodata FOR UPDATE USING (true);
 
         CREATE TABLE alokasi (
-          id SERIAL PRIMARY KEY, idsubsls TEXT, nmkec TEXT, nmdes TEXT, nmsls TEXT,
-          kddesa TEXT, kdsls TEXT, pml TEXT, ppl TEXT, email_pengawas TEXT,
-          email_pencacah TEXT, umkm INTEGER DEFAULT 0, fasih INTEGER DEFAULT 0,
-          flag_perubahan BOOLEAN DEFAULT false, created_at TIMESTAMP DEFAULT NOW()
+          id SERIAL PRIMARY KEY,
+          idsubsls TEXT,
+          "EMAIL PENGAWAS" TEXT,
+          "EMAIL PENCACAH" TEXT,
+          kdkab TEXT,
+          kdkec TEXT,
+          kddesa TEXT,
+          kdsls TEXT,
+          kdsubsls TEXT,
+          nmkab TEXT,
+          nmkec TEXT,
+          nmdes TEXT,
+          nmsls TEXT,
+          nmsubsls TEXT,
+          "PML" TEXT,
+          "PPL" TEXT,
+          UMKM INTEGER DEFAULT 0,
+          FASIH INTEGER DEFAULT 0,
+          "Flag Perubahan" BOOLEAN DEFAULT false,
+          "Flag SLS Open PBI" BOOLEAN DEFAULT false,
+          "KK Open PBI" INTEGER DEFAULT 0,
+          created_at TIMESTAMP DEFAULT NOW()
         );
         ALTER TABLE alokasi ENABLE ROW LEVEL SECURITY;
         CREATE POLICY "r" ON alokasi FOR SELECT USING (true);
@@ -137,10 +214,31 @@
         CREATE POLICY "u" ON alokasi FOR UPDATE USING (true);
 
         CREATE TABLE progres (
-          id SERIAL PRIMARY KEY, kode_identitas TEXT, nama_usaha TEXT, nama_sls TEXT,
-          alamat TEXT, nib TEXT, skala_usaha TEXT, jumlah_usaha TEXT, kode_sls TEXT,
-          kode_desa TEXT, desa TEXT, latitude TEXT, longitude TEXT, mode TEXT,
-          status TEXT DEFAULT 'open', keterangan TEXT, petugas TEXT, created_at TIMESTAMP DEFAULT NOW()
+          id SERIAL PRIMARY KEY,
+          no INTEGER,
+          nmkec TEXT,
+          nmdesa TEXT,
+          nmsls TEXT,
+          kdkec TEXT,
+          kddesa TEXT,
+          kdsls TEXT,
+          kkdsubsls TEXT,
+          kdidentitas TEXT,
+          nmusaha TEXT,
+          nmalamat TEXT,
+          nosbr TEXT,
+          nib TEXT,
+          email TEXT,
+          skalausaha TEXT,
+          jmlusaha TEXT,
+          kdpos TEXT,
+          perubahan TEXT,
+          idsbrumkm TEXT,
+          status TEXT DEFAULT 'open',
+          mode TEXT,
+          petugas TEXT,
+          ket TEXT,
+          created_at TIMESTAMP DEFAULT NOW()
         );
         ALTER TABLE progres ENABLE ROW LEVEL SECURITY;
         CREATE POLICY "r" ON progres FOR SELECT USING (true);
@@ -148,9 +246,18 @@
         CREATE POLICY "u" ON progres FOR UPDATE USING (true);
 
         CREATE TABLE active_sls (
-          id SERIAL PRIMARY KEY, ppl_email TEXT UNIQUE, ppl_nama TEXT, alokasi_id INTEGER,
-          idsubsls TEXT, nmkec TEXT, nmdes TEXT, nmsls TEXT, pml TEXT,
-          umkm INTEGER DEFAULT 0, fasih INTEGER DEFAULT 0, updated_at TIMESTAMP DEFAULT NOW()
+          id SERIAL PRIMARY KEY,
+          ppl_email TEXT UNIQUE,
+          ppl_nama TEXT,
+          alokasi_id INTEGER,
+          idsubsls TEXT,
+          nmkec TEXT,
+          nmdes TEXT,
+          nmsls TEXT,
+          pml TEXT,
+          umkm INTEGER DEFAULT 0,
+          fasih INTEGER DEFAULT 0,
+          updated_at TIMESTAMP DEFAULT NOW()
         );
         ALTER TABLE active_sls ENABLE ROW LEVEL SECURITY;
         CREATE POLICY "r" ON active_sls FOR SELECT USING (true);
@@ -159,7 +266,6 @@
       `;
 
       try {
-        // Try RPC
         log('Membuat tabel...', 'info');
         const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/pg_execute', {
           method: 'POST',
@@ -170,13 +276,11 @@
         if (!res.ok) throw new Error('RPC failed');
         log('Tabel dibuat!', 'success');
       } catch (e) {
-        log('RPC tidak tersedia. Klik tombol di bawah untuk auto-setup:', 'warning');
+        log('RPC tidak tersedia. Klik tombol di bawah:', 'warning');
         log('\n1. Klik "📋 Copy SQL"', 'info');
         log('2. Klik "🔗 Buka SQL Editor"', 'info');
-        log('3. Paste SQL di editor', 'info');
-        log('4. Klik RUN\n', 'info');
+        log('3. Paste SQL → Klik RUN\n', 'info');
 
-        // Show buttons
         const btnHtml = `
           <div style="margin-top: 16px; display: flex; gap: 10px;">
             <button onclick="copySQL()" style="padding: 12px 20px; background: #6366f1; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">📋 Copy SQL</button>
@@ -215,6 +319,274 @@
         document.getElementById('successCard').style.display = 'block';
       } else {
         btn.disabled = false; btn.textContent = '🚀 Setup Database';
+      }
+    }
+
+    // ==================== DYNAMIC IMPORT FEATURES ====================
+
+    let currentFile = null;
+    let parsedData = null;
+    let tableName = '';
+
+    // Tab switching
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelector(`.tab[onclick="switchTab('${tab}')"]`).classList.add('active');
+      document.getElementById(`tab-${tab}`).classList.add('active');
+    }
+
+    // Drag and drop
+    const dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) {
+        handleFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    function handleFileSelect(event) {
+      if (event.target.files.length > 0) {
+        handleFile(event.target.files[0]);
+      }
+    }
+
+    function handleFile(file) {
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File terlalu besar! Maksimal 10MB.');
+        return;
+      }
+      currentFile = file;
+      parseExcelFile(file);
+    }
+
+    async function parseExcelFile(file) {
+      log2('Memproses file...', 'info');
+
+      try {
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+
+        // Convert to JSON
+        parsedData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+
+        if (parsedData.length < 2) {
+          log2('File tidak memiliki data!', 'error');
+          return;
+        }
+
+        const headers = parsedData[0];
+        const rows = parsedData.slice(1);
+
+        // Extract table name from filename
+        tableName = file.name.replace(/\.(xlsx|xls|csv)$/i, '').replace(/\s+/g, '_').toLowerCase();
+
+        // Show preview
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('rowCount').textContent = rows.length;
+        document.getElementById('colCount').textContent = headers.length;
+
+        // Build preview table (max 5 rows)
+        const preview = document.getElementById('previewTable');
+        preview.innerHTML = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+        rows.slice(0, 5).forEach(row => {
+          preview.innerHTML += '<tr>' + headers.map((_, i) => `<td>${row[i] || ''}</td>`).join('') + '</tr>';
+        });
+        if (rows.length > 5) {
+          preview.innerHTML += `<tr><td colspan="${headers.length}" style="text-align:center;color:#64748b;">... dan ${rows.length - 5} baris lagi</td></tr>`;
+        }
+
+        document.getElementById('filePreview').style.display = 'block';
+        log2(`File siap diimport: ${headers.length} kolom, ${rows.length} baris`, 'success');
+
+      } catch (e) {
+        log2('Error parsing file: ' + e.message, 'error');
+      }
+    }
+
+    function log2(msg, type = '') {
+      const box = document.getElementById('logBox2');
+      if (!box) return;
+      const p = type === 'success' ? '[✓]' : type === 'error' ? '[✗]' : type === 'warning' ? '[!]' : '[*]';
+      box.innerHTML += `<span class="${type}">${p} ${msg}</span>\n`;
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function clearFile() {
+      currentFile = null;
+      parsedData = null;
+      tableName = '';
+      document.getElementById('fileInput').value = '';
+      document.getElementById('filePreview').style.display = 'none';
+      document.getElementById('logBox2').innerHTML = '';
+      document.getElementById('logBox2').style.display = 'none';
+    }
+
+    // Detect column type based on values
+    function detectColumnType(values) {
+      const nonEmpty = values.filter(v => v !== '' && v !== null && v !== undefined);
+      if (nonEmpty.length === 0) return 'TEXT';
+
+      let isInteger = true;
+      let isFloat = true;
+      let isBoolean = true;
+      let isDate = true;
+
+      const datePattern = /^\d{4}-\d{2}-\d{2}|^\d{2}\/\d{2}\/\d{4}|^\d{2}-\d{2}-\d{4}/;
+
+      for (const v of nonEmpty) {
+        const str = String(v).trim();
+
+        // Check integer
+        if (isInteger && !/^-?\d+$/.test(str)) isInteger = false;
+
+        // Check float
+        if (isFloat && !/^-?\d+\.?\d*$/.test(str)) isFloat = false;
+
+        // Check boolean patterns
+        if (isBoolean && !/^(0|1|true|false|ya|tidak|yes|no|tidak)$/i.test(str)) isBoolean = false;
+
+        // Check date
+        if (isDate && !datePattern.test(str) && isNaN(Date.parse(str))) isDate = false;
+      }
+
+      if (isInteger) return 'INTEGER';
+      if (isFloat) return 'DOUBLE PRECISION';
+      if (isBoolean) return 'BOOLEAN';
+      if (isDate) return 'TIMESTAMP';
+      return 'TEXT';
+    }
+
+    // Generate CREATE TABLE SQL
+    function generateCreateTableSQL(tableName, headers, data) {
+      const columns = [];
+      const colCount = headers.length;
+
+      for (let i = 0; i < colCount; i++) {
+        const colName = String(headers[i]).trim().replace(/"/g, '""') || `column_${i}`;
+        const safeName = `"${colName}"`;
+        const values = data.map(row => row[i]);
+        const type = detectColumnType(values);
+        columns.push(`${safeName} ${type}`);
+      }
+
+      return `
+DROP TABLE IF EXISTS ${tableName} CASCADE;
+CREATE TABLE ${tableName} (
+  ${columns.join(',\n  ')}
+);
+ALTER TABLE ${tableName} ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "r" ON ${tableName} FOR SELECT USING (true);
+CREATE POLICY "i" ON ${tableName} FOR INSERT WITH CHECK (true);
+CREATE POLICY "u" ON ${tableName} FOR UPDATE USING (true);
+      `.trim();
+    }
+
+    // Run dynamic import
+    async function runDynamicImport() {
+      const key = document.getElementById('serviceKeyInput').value.trim();
+      if (!key) { alert('Masukkan Service Role Key!'); return; }
+      if (!currentFile || !parsedData) { alert('Pilih file dulu!'); return; }
+
+      const headers = parsedData[0];
+      const rows = parsedData.slice(1);
+
+      if (headers.length === 0 || rows.length === 0) {
+        alert('File tidak memiliki data valid!');
+        return;
+      }
+
+      const btn = document.getElementById('btnImport');
+      btn.disabled = true;
+      btn.textContent = '⏳ Processing...';
+
+      const logBox = document.getElementById('logBox2');
+      logBox.style.display = 'block';
+      logBox.innerHTML = '';
+
+      log2(`Table: ${tableName}`, 'info');
+      log2(`Kolom: ${headers.length}`, 'info');
+      log2(`Baris: ${rows.length}`, 'info');
+
+      try {
+        // Generate SQL
+        log2('Mendeteksi tipe data...', 'info');
+        const sql = generateCreateTableSQL(tableName, headers, rows);
+
+        // Show detected types
+        for (let i = 0; i < headers.length; i++) {
+          const values = rows.map(row => row[i]);
+          const type = detectColumnType(values);
+          log2(`  ${headers[i]} → ${type}`, 'info');
+        }
+
+        // Execute SQL
+        log2('Membuat tabel...', 'info');
+        const createRes = await fetch(SUPABASE_URL + '/rest/v1/rpc/pg_execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': key, 'Authorization': 'Bearer ' + key },
+          body: JSON.stringify({ sql: sql })
+        });
+
+        if (!createRes.ok) {
+          throw new Error('Gagal membuat tabel');
+        }
+        log2('Tabel berhasil dibuat!', 'success');
+
+        // Prepare data for insert
+        log2('Menginsert data...', 'info');
+        const insertData = rows.map(row => {
+          const obj = {};
+          headers.forEach((h, i) => {
+            obj[String(h).trim()] = row[i];
+          });
+          return obj;
+        });
+
+        // Insert in batches
+        const batchSize = 100;
+        let totalInserted = 0;
+
+        for (let i = 0; i < insertData.length; i += batchSize) {
+          const batch = insertData.slice(i, i + batchSize);
+
+          const insertRes = await fetch(SUPABASE_URL + '/rest/v1/' + tableName, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': key,
+              'Authorization': 'Bearer ' + key,
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify(batch)
+          });
+
+          if (insertRes.ok) {
+            totalInserted += batch.length;
+            log2(`  Inserted ${totalInserted}/${insertData.length}`, 'info');
+          } else {
+            const err = await insertRes.text();
+            log2(`  Error batch ${i}: ${err}`, 'warning');
+          }
+        }
+
+        log2(`Berhasil! ${totalInserted} baris diimport.`, 'success');
+        btn.textContent = '✅ Selesai!';
+
+      } catch (e) {
+        log2('Error: ' + e.message, 'error');
+        btn.disabled = false;
+        btn.textContent = '🚀 Buat Tabel & Import';
       }
     }
   </script>
