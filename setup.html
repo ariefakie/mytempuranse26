@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Database - SE2026 Tempuran</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%); min-height: 100vh; color: #e2e8f0; padding: 40px 20px; }
+    .container { max-width: 600px; margin: 0 auto; text-align: center; }
+    .header { margin-bottom: 40px; }
+    .header h1 { font-size: 28px; margin-bottom: 12px; background: linear-gradient(135deg, #6366f1, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .header p { color: #94a3b8; font-size: 16px; }
+    .card { background: rgba(30, 30, 50, 0.8); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 16px; padding: 30px; margin-bottom: 20px; text-align: left; }
+    .card h2 { font-size: 18px; margin-bottom: 16px; color: #818cf8; }
+    .card p { color: #94a3b8; margin-bottom: 16px; line-height: 1.6; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+    .form-group textarea, .form-group input { width: 100%; padding: 12px 16px; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; background: rgba(15, 15, 25, 0.8); color: #e2e8f0; font-size: 14px; font-family: monospace; box-sizing: border-box; }
+    .form-group textarea { min-height: 60px; resize: vertical; }
+    .form-group small { display: block; margin-top: 6px; color: #64748b; font-size: 12px; }
+    .btn { padding: 14px 28px; border: none; border-radius: 10px; font-weight: 700; font-size: 15px; cursor: pointer; transition: all 0.3s; width: 100%; box-sizing: border-box; }
+    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-success { background: linear-gradient(135deg, #10b981, #059669); color: white; text-decoration: none; display: inline-block; padding: 14px 28px; border-radius: 10px; font-weight: 700; font-size: 15px; }
+    .log { background: rgba(15, 15, 25, 0.9); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 8px; padding: 16px; margin-top: 16px; font-family: monospace; font-size: 12px; max-height: 250px; overflow-y: auto; white-space: pre-wrap; text-align: left; color: #94a3b8; }
+    .success { color: #4ade80; }
+    .error { color: #f87171; }
+    .warning { color: #fbbf24; }
+    .info { color: #60a5fa; }
+    .success-box { background: rgba(74, 222, 128, 0.1); border: 2px solid rgba(74, 222, 128, 0.3); border-radius: 16px; padding: 40px; text-align: center; }
+    .success-box h2 { color: #4ade80; font-size: 24px; margin-bottom: 12px; }
+    .success-box p { color: #94a3b8; margin-bottom: 20px; }
+    .note { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 12px; margin-top: 16px; font-size: 12px; color: #fbbf24; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⚙️ Setup Database</h1>
+      <p>Buat tabel database otomatis</p>
+    </div>
+
+    <div class="card" id="keyCard">
+      <h2>🔑 Masukkan Service Role Key</h2>
+      <p>Key ini tidak disimpan, hanya digunakan untuk membuat tabel.</p>
+
+      <div class="form-group">
+        <label>Service Role Key:</label>
+        <textarea id="serviceKeyInput" placeholder="sb_secret_xxxxxx..."></textarea>
+        <small>Contoh: sb_secret_Q_VTCCswLEqv39Zm8lxpWA_b_PVtFPx</small>
+      </div>
+
+      <button class="btn btn-primary" id="btnSetup" onclick="runSetup()">🚀 Setup Database</button>
+
+      <div class="log" id="logBox" style="display: none;"></div>
+
+      <div class="note">
+        💡 Buka Supabase Dashboard → Settings → API → Copy "service_role key"
+      </div>
+    </div>
+
+    <div class="card success-box hidden" id="successCard">
+      <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
+      <h2>Setup Berhasil!</h2>
+      <p>Semua tabel berhasil dibuat.</p>
+      <a href="import.html" class="btn-success">📥 Lanjut ke Import Data</a>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://ebyzqfvfursatmeqdlwc.supabase.co';
+
+    function log(msg, type = '') {
+      const box = document.getElementById('logBox');
+      if (!box) return;
+      const p = type === 'success' ? '[✓]' : type === 'error' ? '[✗]' : type === 'warning' ? '[!]' : '[*]';
+      box.innerHTML += `<span class="${type}">${p} ${msg}</span>\n`;
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function runSetup() {
+      const key = document.getElementById('serviceKeyInput').value.trim();
+      if (!key) { alert('Masukkan Service Role Key!'); return; }
+
+      const btn = document.getElementById('btnSetup');
+      const box = document.getElementById('logBox');
+      btn.disabled = true; btn.textContent = '⏳ Processing...';
+      box.style.display = 'block';
+
+      log('MEMULAI SETUP...', 'info');
+
+      const sql = `
+        DROP TABLE IF EXISTS active_sls CASCADE;
+        DROP TABLE IF EXISTS progres CASCADE;
+        DROP TABLE IF EXISTS alokasi CASCADE;
+        DROP TABLE IF EXISTS biodata CASCADE;
+
+        CREATE TABLE biodata (
+          id SERIAL PRIMARY KEY, nama TEXT, email TEXT UNIQUE, posisi TEXT, no_telp TEXT,
+          alamat TEXT, alamat_desa TEXT, ttl TEXT, umur INTEGER, jenis_kelamin TEXT,
+          pendidikan TEXT, pekerjaan TEXT, punya_kendaraan TEXT, bisa_motor TEXT,
+          punya_hp_android TEXT, merk_hp TEXT, tipe_hp TEXT, berpengalaman_capi TEXT,
+          pernah_se TEXT, status_nik TEXT, created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        );
+        ALTER TABLE biodata ENABLE ROW LEVEL SECURITY;
+        CREATE POLICY "r" ON biodata FOR SELECT USING (true);
+        CREATE POLICY "i" ON biodata FOR INSERT WITH CHECK (true);
+        CREATE POLICY "u" ON biodata FOR UPDATE USING (true);
+
+        CREATE TABLE alokasi (
+          id SERIAL PRIMARY KEY, idsubsls TEXT, nmkec TEXT, nmdes TEXT, nmsls TEXT,
+          kddesa TEXT, kdsls TEXT, pml TEXT, ppl TEXT, email_pengawas TEXT,
+          email_pencacah TEXT, umkm INTEGER DEFAULT 0, fasih INTEGER DEFAULT 0,
+          flag_perubahan BOOLEAN DEFAULT false, created_at TIMESTAMP DEFAULT NOW()
+        );
+        ALTER TABLE alokasi ENABLE ROW LEVEL SECURITY;
+        CREATE POLICY "r" ON alokasi FOR SELECT USING (true);
+        CREATE POLICY "i" ON alokasi FOR INSERT WITH CHECK (true);
+        CREATE POLICY "u" ON alokasi FOR UPDATE USING (true);
+
+        CREATE TABLE progres (
+          id SERIAL PRIMARY KEY, kode_identitas TEXT, nama_usaha TEXT, nama_sls TEXT,
+          alamat TEXT, nib TEXT, skala_usaha TEXT, jumlah_usaha TEXT, kode_sls TEXT,
+          kode_desa TEXT, desa TEXT, latitude TEXT, longitude TEXT, mode TEXT,
+          status TEXT DEFAULT 'open', keterangan TEXT, petugas TEXT, created_at TIMESTAMP DEFAULT NOW()
+        );
+        ALTER TABLE progres ENABLE ROW LEVEL SECURITY;
+        CREATE POLICY "r" ON progres FOR SELECT USING (true);
+        CREATE POLICY "i" ON progres FOR INSERT WITH CHECK (true);
+        CREATE POLICY "u" ON progres FOR UPDATE USING (true);
+
+        CREATE TABLE active_sls (
+          id SERIAL PRIMARY KEY, ppl_email TEXT UNIQUE, ppl_nama TEXT, alokasi_id INTEGER,
+          idsubsls TEXT, nmkec TEXT, nmdes TEXT, nmsls TEXT, pml TEXT,
+          umkm INTEGER DEFAULT 0, fasih INTEGER DEFAULT 0, updated_at TIMESTAMP DEFAULT NOW()
+        );
+        ALTER TABLE active_sls ENABLE ROW LEVEL SECURITY;
+        CREATE POLICY "r" ON active_sls FOR SELECT USING (true);
+        CREATE POLICY "i" ON active_sls FOR INSERT WITH CHECK (true);
+        CREATE POLICY "u" ON active_sls FOR UPDATE USING (true);
+      `;
+
+      try {
+        // Try RPC
+        log('Membuat tabel...', 'info');
+        const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/pg_execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': key, 'Authorization': 'Bearer ' + key },
+          body: JSON.stringify({ sql: sql })
+        });
+
+        if (!res.ok) throw new Error('RPC failed');
+        log('Tabel dibuat!', 'success');
+      } catch (e) {
+        log('RPC tidak tersedia. Buka link untuk setup manual:', 'warning');
+        log('https://supabase.com/dashboard/project/ebyzqfvfursatmeqdlwc/sql/new', 'info');
+        log('\nCopy SQL ini ke SQL Editor:', 'warning');
+        log(sql, 'info');
+        btn.disabled = false; btn.textContent = '🚀 Setup Database';
+        return;
+      }
+
+      // Verify
+      log('Memverifikasi...', 'info');
+      let ok = true;
+      for (const t of ['biodata', 'alokasi', 'progres', 'active_sls']) {
+        const r = await fetch(SUPABASE_URL + '/rest/v1/' + t + '?limit=1', {
+          headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
+        });
+        if (r.ok) log('✓ ' + t, 'success'); else { log('✗ ' + t, 'error'); ok = false; }
+      }
+
+      if (ok) {
+        document.getElementById('keyCard').style.display = 'none';
+        document.getElementById('successCard').style.display = 'block';
+      } else {
+        btn.disabled = false; btn.textContent = '🚀 Setup Database';
+      }
+    }
+  </script>
+</body>
+</html>
