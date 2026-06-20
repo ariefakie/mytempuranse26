@@ -3,8 +3,8 @@
 // SE2026-Tempuran
 // ===================================================
 
-const SUPABASE_URL = 'https://zzeolcdolgutfhotzjcw.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp6ZW9sY2RvbGd1dGZob3R6amN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MzAxODEsImV4cCI6MjA5NzIwNjE4MX0.vHWswj_Q--0qJiHNX2ydNbr5DdwvObUz5Kld_SX7Ezw';
+const SUPABASE_URL = 'https://ebyzqfvfursatmeqdlwc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVieXpxZnZmdXJzYXRtZXFkZGx3YyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzUxMjE4ODU4LCJleHAiOjIwNjY3OTQ4NTh9.KG_7kNQrT1eGzDxwqLLq5s5R5z0h5dGvY8RqJm4xQZc';
 
 // ===================================================
 // HELPER FUNCTIONS

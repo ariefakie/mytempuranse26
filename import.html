@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Import Data - SE2026 Tempuran</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -28,7 +29,7 @@
     .card h2 { font-size: 18px; margin-bottom: 16px; color: #818cf8; }
     .form-group { margin-bottom: 16px; }
     label { display: block; margin-bottom: 8px; font-weight: 500; }
-    select, input[type="text"], textarea {
+    select {
       width: 100%;
       padding: 12px 16px;
       border: 1px solid rgba(99, 102, 241, 0.3);
@@ -37,11 +38,7 @@
       color: #e2e8f0;
       font-size: 14px;
     }
-    select:focus, input:focus, textarea:focus {
-      outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-    }
+    select:focus { outline: none; border-color: #6366f1; }
     .drop-zone {
       border: 2px dashed rgba(99, 102, 241, 0.4);
       border-radius: 12px;
@@ -50,10 +47,7 @@
       cursor: pointer;
       transition: all 0.3s;
     }
-    .drop-zone:hover, .drop-zone.dragover {
-      border-color: #6366f1;
-      background: rgba(99, 102, 241, 0.1);
-    }
+    .drop-zone:hover, .drop-zone.dragover { border-color: #6366f1; background: rgba(99, 102, 241, 0.1); }
     .drop-zone input { display: none; }
     .btn {
       padding: 12px 24px;
@@ -64,10 +58,7 @@
       font-size: 14px;
       transition: all 0.3s;
     }
-    .btn-primary {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: white;
-    }
+    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4); }
     .btn-secondary { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
     .log {
@@ -86,54 +77,21 @@
     .error { color: #f87171; }
     .warning { color: #fbbf24; }
     .info { color: #60a5fa; }
-    .preview-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 16px;
-      font-size: 12px;
-    }
-    .preview-table th, .preview-table td {
-      padding: 8px 12px;
-      border: 1px solid rgba(99, 102, 241, 0.2);
-      text-align: left;
-    }
+    .preview-table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 12px; }
+    .preview-table th, .preview-table td { padding: 8px 12px; border: 1px solid rgba(99, 102, 241, 0.2); text-align: left; }
     .preview-table th { background: rgba(99, 102, 241, 0.1); color: #818cf8; }
     .preview-table tr:nth-child(even) { background: rgba(15, 15, 25, 0.5); }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-    .stat-box {
-      background: rgba(99, 102, 241, 0.1);
-      border: 1px solid rgba(99, 102, 241, 0.2);
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-    }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+    .stat-box { background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 20px; text-align: center; }
     .stat-box .value { font-size: 32px; font-weight: 700; color: #818cf8; }
     .stat-box .label { font-size: 12px; color: #94a3b8; margin-top: 4px; }
-    .note {
-      background: rgba(245, 158, 11, 0.1);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      border-radius: 8px;
-      padding: 16px;
-      margin-top: 20px;
-      font-size: 13px;
-      color: #fbbf24;
-    }
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: #818cf8;
-      text-decoration: none;
-      margin-bottom: 20px;
-      font-size: 14px;
-    }
+    .note { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 16px; margin-top: 20px; font-size: 13px; color: #4ade80; }
+    .back-link { display: inline-flex; align-items: center; gap: 8px; color: #818cf8; text-decoration: none; margin-bottom: 20px; font-size: 14px; }
     .back-link:hover { color: #6366f1; }
     .hidden { display: none; }
+    .quick-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+    .quick-btn { padding: 8px 16px; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 6px; background: rgba(15,15,25,0.6); color: #818cf8; cursor: pointer; font-size: 12px; }
+    .quick-btn:hover { background: rgba(99,102,241,0.2); }
   </style>
 </head>
 <body>
@@ -142,97 +100,83 @@
 
     <div class="header">
       <h1>📥 Import Data ke Supabase</h1>
-      <p>Upload file CSV untuk mengimpor data ke database SE2026 Tempuran</p>
+      <p>Upload file CSV atau Excel untuk import data</p>
     </div>
 
     <div class="stats">
-      <div class="stat-box">
-        <div class="value" id="statBiodata">-</div>
-        <div class="label">Biodata</div>
-      </div>
-      <div class="stat-box">
-        <div class="value" id="statAlokasi">-</div>
-        <div class="label">Alokasi</div>
-      </div>
-      <div class="stat-box">
-        <div class="value" id="statProgres">-</div>
-        <div class="label">Progres</div>
-      </div>
+      <div class="stat-box"><div class="value" id="statBiodata">-</div><div class="label">Biodata</div></div>
+      <div class="stat-box"><div class="value" id="statAlokasi">-</div><div class="label">Alokasi</div></div>
+      <div class="stat-box"><div class="value" id="statProgres">-</div><div class="label">Progres</div></div>
     </div>
 
     <div class="card">
       <h2>1. Pilih Tabel Tujuan</h2>
-      <div class="form-group">
-        <select id="tableSelect">
-          <option value="">-- Pilih Tabel --</option>
-          <option value="biodata">Biodata Petugas</option>
-          <option value="alokasi">Alokasi SLS</option>
-          <option value="progres">Progres Lapangan</option>
-        </select>
+      <select id="tableSelect">
+        <option value="">-- Pilih Tabel --</option>
+        <option value="biodata">Biodata Petugas</option>
+        <option value="alokasi">Alokasi SLS</option>
+        <option value="progres">Progres Lapangan</option>
+      </select>
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="loadSampleFile('biodata')">📁 Biodata Petugas.xlsx</button>
+        <button class="quick-btn" onclick="loadSampleFile('alokasi')">📁 Alokasi_Petugas.xlsx</button>
+        <button class="quick-btn" onclick="loadSampleFile('progres')">📁 Progres_Lapangan.csv</button>
       </div>
     </div>
 
     <div class="card">
-      <h2>2. Upload File CSV</h2>
+      <h2>2. Upload File</h2>
       <div class="drop-zone" id="dropZone">
-        <input type="file" id="fileInput" accept=".csv">
+        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls">
         <div style="font-size: 48px; margin-bottom: 16px;">📁</div>
-        <div style="font-weight: 600; margin-bottom: 8px;">Klik atau drag file CSV ke sini</div>
-        <div style="font-size: 13px; color: #94a3b8;">Format: .csv (Max 50MB)</div>
+        <div style="font-weight: 600; margin-bottom: 8px;">Klik atau drag file CSV/Excel ke sini</div>
+        <div style="font-size: 13px; color: #94a3b8;">Format: .csv, .xlsx, .xls (Max 50MB)</div>
       </div>
     </div>
 
     <div class="card hidden" id="previewCard">
       <h2>3. Preview Data</h2>
-      <div style="margin-bottom: 16px;">
-        <strong>File:</strong> <span id="fileName">-</span> |
-        <strong>Rows:</strong> <span id="rowCount">0</span>
-      </div>
+      <div style="margin-bottom: 16px;"><strong>File:</strong> <span id="fileName">-</span> | <strong>Rows:</strong> <span id="rowCount">0</span></div>
       <div style="overflow-x: auto;">
-        <table class="preview-table" id="previewTable">
+        <table class="preview-table">
           <thead id="previewHead"></thead>
           <tbody id="previewBody"></tbody>
         </table>
       </div>
       <div style="margin-top: 20px; display: flex; gap: 12px;">
-        <button class="btn btn-primary" id="btnImport" onclick="startImport()">
-          🚀 Import ke Supabase
-        </button>
-        <button class="btn btn-secondary" onclick="clearFile()">
-          ❌ Batal
-        </button>
+        <button class="btn btn-primary" id="btnImport" onclick="startImport()">🚀 Import ke Supabase</button>
+        <button class="btn btn-secondary" onclick="clearFile()">❌ Batal</button>
       </div>
     </div>
 
     <div class="card hidden" id="progressCard">
       <h2>📊 Progress Import</h2>
-      <div style="margin-bottom: 16px;">
-        <span id="progressText">Menunggu...</span>
-      </div>
+      <div style="margin-bottom: 16px;"><span id="progressText">Menunggu...</span></div>
       <div class="log" id="logBox">[Menunggu import...]\n</div>
     </div>
 
     <div class="note">
-      ⚠️ <strong>Perhatian:</strong>
-      <ul style="margin-top: 8px; padding-left: 20px;">
-        <li>File CSV harus memiliki header di baris pertama</li>
-        <li>Nama kolom harus sesuai dengan struktur tabel Supabase</li>
-        <li>Data duplikat akan di-skip (berdasarkan primary key)</li>
-        <li>Untuk data besar, proses mungkin memakan waktu beberapa menit</li>
-      </ul>
+      ✅ <strong>Catatan:</strong> File yang didukung: CSV, XLSX, XLS. Header kolom harus sesuai dengan nama kolom di tabel Supabase.
     </div>
   </div>
 
   <script>
     // Supabase Config
-    const SUPABASE_URL = 'https://zzeolcdolgutfhotzjcw.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp6ZW9sY2RvbGd1dGZob3R6amN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MzAxODEsImV4cCI6MjA5NzIwNjE4MX0.vHWswj_Q--0qJiHNX2ydNbr5DdwvObUz5Kld_SX7Ezw';
+    const SUPABASE_URL = 'https://ebyzqfvfursatmeqdlwc.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVieXpxZnZmdXJzYXRtZXFkZGx3YyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzUxMjE4ODU4LCJleHAiOjIwNjY3OTQ4NTh9.KG_7kNQrT1eGzDxwqLLq5s5R5z0h5dGvY8RqJm4xQZc';
 
     let parsedData = [];
     let headers = [];
     let selectedTable = '';
+    let currentFileName = '';
 
-    // Check current data count
+    // Sample files mapping
+    const SAMPLE_FILES = {
+      biodata: 'Biodata Petugas.xlsx',
+      alokasi: 'Alokasi_Petugas.xlsx',
+      progres: 'Progres_Lapangan.csv'
+    };
+
     async function checkDataCount() {
       const tables = ['biodata', 'alokasi', 'progres'];
       for (const table of tables) {
@@ -248,10 +192,41 @@
       }
     }
 
-    // Table selection
     document.getElementById('tableSelect').addEventListener('change', (e) => {
       selectedTable = e.target.value;
     });
+
+    // Load sample file
+    async function loadSampleFile(tableName) {
+      const fileName = SAMPLE_FILES[tableName];
+      if (!fileName) return;
+
+      document.getElementById('tableSelect').value = tableName;
+      selectedTable = tableName;
+
+      log(`[INFO] Loading ${fileName}...`, 'info');
+
+      try {
+        const response = await fetch('./' + encodeURIComponent(fileName));
+        if (!response.ok) {
+          log(`[ERROR] File not found: ${fileName}`, 'error');
+          log(`[INFO] Pastikan file ada di folder yang sama dengan import.html`, 'warning');
+          return;
+        }
+
+        const buffer = await response.arrayBuffer();
+        currentFileName = fileName;
+
+        if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+          parseXLSX(buffer, fileName);
+        } else {
+          const text = await response.text();
+          parseCSV(text, fileName);
+        }
+      } catch (e) {
+        log(`[ERROR] ${e.message}`, 'error');
+      }
+    }
 
     // File handling
     const dropZone = document.getElementById('dropZone');
@@ -268,34 +243,62 @@
     fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFile(e.target.files[0]); });
 
     function handleFile(file) {
-      if (!file.name.endsWith('.csv')) {
-        alert('Hanya file CSV yang didukung!');
-        return;
-      }
-      if (!selectedTable) {
-        alert('Pilih tabel tujuan terlebih dahulu!');
-        return;
-      }
-
+      currentFileName = file.name;
       const reader = new FileReader();
+
       reader.onload = (e) => {
-        parseCSV(e.target.result, file.name);
+        if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+          parseXLSX(e.target.result, file.name);
+        } else {
+          parseCSV(e.target.result, file.name);
+        }
       };
-      reader.readAsText(file);
+
+      if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        reader.readAsArrayBuffer(file);
+      } else {
+        reader.readAsText(file);
+      }
+    }
+
+    function parseXLSX(buffer, fileName) {
+      try {
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+        if (jsonData.length < 2) {
+          log(`[ERROR] File tidak memiliki data!`, 'error');
+          return;
+        }
+
+        headers = jsonData[0].map(h => String(h).trim());
+        parsedData = [];
+
+        for (let i = 1; i < jsonData.length; i++) {
+          const values = jsonData[i];
+          if (!values || values.length === 0) continue;
+          const row = {};
+          headers.forEach((h, idx) => row[h] = values[idx] !== undefined ? String(values[idx]) : '');
+          parsedData.push(row);
+        }
+
+        showPreview(fileName);
+      } catch (e) {
+        log(`[ERROR] Gagal parse XLSX: ${e.message}`, 'error');
+      }
     }
 
     function parseCSV(text, fileName) {
       const lines = text.split('\n').filter(l => l.trim());
       if (lines.length < 2) {
-        alert('File CSV tidak memiliki data!');
+        log(`[ERROR] File tidak memiliki data!`, 'error');
         return;
       }
 
-      // Parse headers
       headers = parseCSVLine(lines[0]);
-
-      // Parse data rows
       parsedData = [];
+
       for (let i = 1; i < lines.length; i++) {
         const values = parseCSVLine(lines[i]);
         if (values.length === headers.length) {
@@ -305,25 +308,27 @@
         }
       }
 
-      // Show preview
+      showPreview(fileName);
+    }
+
+    function showPreview(fileName) {
       document.getElementById('fileName').textContent = fileName;
       document.getElementById('rowCount').textContent = parsedData.length;
 
-      // Render preview table (first 5 rows)
       const previewHead = document.getElementById('previewHead');
       const previewBody = document.getElementById('previewBody');
 
-      previewHead.innerHTML = `<tr>${headers.slice(0, 8).map(h => `<th>${h}</th>`).join('')}</tr>`;
-      previewBody.innerHTML = parsedData.slice(0, 5).map(row =>
-        `<tr>${headers.slice(0, 8).map(h => `<td>${(row[h] || '').substring(0, 30)}</td>`).join('')}</tr>`
+      previewHead.innerHTML = `<tr>${headers.slice(0, 8).map(h => `<th>${h}</th>`).join('')}${headers.length > 8 ? '<th>...</th>' : ''}</tr>`;
+      previewBody.innerHTML = parsedData.slice(0, 5).map((row, idx) =>
+        `<tr>${headers.slice(0, 8).map(h => `<td>${(row[h] || '').toString().substring(0, 30)}</td>`).join('')}${headers.length > 8 ? '<td>...</td>' : ''}</tr>`
       ).join('');
 
       document.getElementById('previewCard').classList.remove('hidden');
       document.getElementById('progressCard').classList.add('hidden');
 
-      log(`[INFO] File loaded: ${fileName}`);
-      log(`[INFO] Total rows: ${parsedData.length}`);
-      log(`[INFO] Columns: ${headers.join(', ')}`);
+      log(`[INFO] File: ${fileName}`, 'info');
+      log(`[INFO] Total rows: ${parsedData.length}`, 'success');
+      log(`[INFO] Columns: ${headers.length}`, 'info');
     }
 
     function parseCSVLine(line) {
@@ -333,14 +338,9 @@
 
       for (let i = 0; i < line.length; i++) {
         const char = line[i];
-        if (char === '"') {
-          inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-          result.push(current);
-          current = '';
-        } else {
-          current += char;
-        }
+        if (char === '"') { inQuotes = !inQuotes; }
+        else if (char === ',' && !inQuotes) { result.push(current); current = ''; }
+        else { current += char; }
       }
       result.push(current);
       return result;
@@ -376,8 +376,8 @@
       let errorCount = 0;
       let skipCount = 0;
 
-      log(`[INFO] Starting import to table: ${selectedTable}`);
-      log(`[INFO] Total records: ${parsedData.length}`);
+      log(`[INFO] Importing to: ${selectedTable}`, 'info');
+      log(`[INFO] Total records: ${parsedData.length}\n`, 'info');
 
       for (let i = 0; i < parsedData.length; i += batchSize) {
         const batch = parsedData.slice(i, i + batchSize);
@@ -385,59 +385,46 @@
         const totalBatches = Math.ceil(parsedData.length / batchSize);
 
         document.getElementById('progressText').textContent =
-          `Processing batch ${batchNum}/${totalBatches} (${Math.min(i + batchSize, parsedData.length)}/${parsedData.length})`;
+          `Batch ${batchNum}/${totalBatches} (${Math.min(i + batchSize, parsedData.length)}/${parsedData.length})`;
 
-        try {
-          // Try to insert each row
-          for (const row of batch) {
-            try {
-              const res = await fetch(`${SUPABASE_URL}/rest/v1/${selectedTable}`, {
-                method: 'POST',
-                headers: {
-                  'apikey': SUPABASE_KEY,
-                  'Authorization': `Bearer ${SUPABASE_KEY}`,
-                  'Content-Type': 'application/json',
-                  'Prefer': 'return=minimal'
-                },
-                body: JSON.stringify(row)
-              });
+        for (const row of batch) {
+          try {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/${selectedTable}`, {
+              method: 'POST',
+              headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal'
+              },
+              body: JSON.stringify(row)
+            });
 
-              if (res.status === 201 || res.status === 200) {
-                successCount++;
-              } else if (res.status === 409) {
-                // Conflict - duplicate
-                skipCount++;
-              } else {
-                const err = await res.text();
-                log(`[WARNING] Row ${i + 1}: ${err.substring(0, 100)}`, 'warning');
-                errorCount++;
-              }
-            } catch (e) {
+            if (res.status === 201 || res.status === 200) {
+              successCount++;
+            } else if (res.status === 409) {
+              skipCount++;
+            } else {
               errorCount++;
             }
+          } catch (e) {
+            errorCount++;
           }
-
-          log(`[INFO] Batch ${batchNum} completed`, 'success');
-        } catch (e) {
-          log(`[ERROR] Batch ${batchNum} failed: ${e.message}`, 'error');
         }
+
+        log(`[INFO] Batch ${batchNum} done`, 'success');
       }
 
       log('');
-      log('========== IMPORT COMPLETE ==========', 'success');
-      log(`Total rows processed: ${parsedData.length}`, 'info');
-      log(`Successfully imported: ${successCount}`, 'success');
-      log(`Skipped (duplicates): ${skipCount}`, 'warning');
-      log(`Errors: ${errorCount}`, errorCount > 0 ? 'error' : '');
+      log('========== COMPLETE ==========', 'success');
+      log(`Total: ${parsedData.length} | Success: ${successCount} | Skip: ${skipCount} | Error: ${errorCount}`, successCount > 0 ? 'success' : 'error');
 
-      document.getElementById('progressText').textContent = 'Import selesai!';
+      document.getElementById('progressText').textContent = 'Selesai!';
       document.getElementById('btnImport').disabled = false;
 
-      // Refresh counts
       checkDataCount();
     }
 
-    // Initialize
     checkDataCount();
   </script>
 </body>
