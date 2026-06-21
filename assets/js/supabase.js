@@ -254,6 +254,7 @@ function formatPhoneNumber(phone) {
 // SUPABASE API CALLS
 // ===================================================
 
+// Default fetch (for small tables)
 async function supabaseGet(table, filters = '') {
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${filters}`, {
@@ -270,6 +271,55 @@ async function supabaseGet(table, filters = '') {
     return await res.json();
   } catch (e) {
     console.error('Supabase GET error:', e);
+    return null;
+  }
+}
+
+// Fetch ALL rows using pagination (bypasses 1000 row limit)
+async function supabaseGetAll(table, filters = '', batchSize = 1000) {
+  try {
+    let allData = [];
+    let offset = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      const pagination = filters
+        ? `${filters}&offset=${offset}&limit=${batchSize}`
+        : `?offset=${offset}&limit=${batchSize}`;
+
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${pagination}`, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!res.ok) {
+        console.error(`Supabase GET error: ${res.status} ${res.statusText}`);
+        return allData.length > 0 ? allData : null;
+      }
+
+      const data = await res.json();
+
+      if (!Array.isArray(data) || data.length === 0) {
+        hasMore = false;
+      } else {
+        allData = allData.concat(data);
+        offset += batchSize;
+
+        // If we got less than batchSize, we're done
+        if (data.length < batchSize) {
+          hasMore = false;
+        }
+      }
+    }
+
+    console.log(`[${table}] Fetched ${allData.length} total rows`);
+    return allData;
+
+  } catch (e) {
+    console.error('Supabase GET ALL error:', e);
     return null;
   }
 }
@@ -431,7 +481,7 @@ async function getAlokasiByEmail(email) {
 }
 
 async function getAllProgres() {
-  return await supabaseGet('progres_lapangan', '?select=*&limit=50000');
+  return await supabaseGetAll('progres_lapangan');
 }
 
 async function getProgresByPetugas(petugasEmail) {
@@ -555,14 +605,15 @@ window.supabase = {
 
   // API
   getAllBiodata,
+  getAllAlokasi,
+  getAllProgres,
+  getProgresByPetugas,
   getBiodataById,
   getBiodataByEmail,
   updateBiodataPhone,
   updateBiodata,
-  getAllAlokasi,
-  getAlokasiByEmail,
-  getAllProgres,
-  getProgresByPetugas,
+  supabaseGetAll,
+  supabaseGet,
 
   // Active SLS
   setActiveSLS,
