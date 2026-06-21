@@ -101,6 +101,9 @@ function generateCreateTableSQL(tableName, data) {
   const columns = Object.keys(data[0]);
   const columnDefs = [];
 
+  // Add id column first
+  columnDefs.push('id SERIAL PRIMARY KEY');
+
   for (const col of columns) {
     const values = data.map(row => row[col]);
     const type = detectColumnType(values);
@@ -130,8 +133,8 @@ async function insertData(apiKey, tableName, data) {
   for (let i = 0; i < data.length; i += batchSize) {
     const batch = data.slice(i, i + batchSize);
 
-    // Build INSERT SQL
-    const columns = Object.keys(batch[0]);
+    // Build INSERT SQL - exclude 'no' column if exists (id is auto-generated)
+    let columns = Object.keys(batch[0]).filter(col => col !== 'no');
     const values = batch.map(row => {
       return '(' + columns.map(col => {
         const val = row[col];
