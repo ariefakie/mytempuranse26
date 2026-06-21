@@ -107,16 +107,29 @@ async function loadAllData() {
 
   // Format all PML/PPL names and villages
   AppData.biodata.forEach(p => {
-    p.nama = titleCase(p.nama);
-    p.alamat_desa = getCleanDesa(p.alamat_desa);
+    p.nama = titleCase(p.nm_lengkap); // Map nm_lengkap to nama for compatibility
+    p.posisi = p.jabatan; // Map jabatan to posisi for compatibility
+    p.alamat_desa = getCleanDesa(p.nmdesa);
   });
   AppData.alokasi.forEach(a => {
-    a.pml = titleCase(a.pml);
-    a.ppl = titleCase(a.ppl);
+    a.pml = titleCase(a["PML"]);
+    a.ppl = titleCase(a["PPL"]);
+    a.email_pencacah = a["EMAIL PENCACAH"];
+    a.email_pengawas = a["EMAIL PENGAWAS"];
     a.nmdes = getCleanDesa(a.nmdes);
   });
   AppData.progres.forEach(pr => {
-    pr.desa = getCleanDesa(pr.desa);
+    pr.desa = getCleanDesa(pr.nmdesa);
+    pr.petugas = pr.email; // Map email to petugas for compatibility
+    // Map field names for compatibility
+    pr.kode_sls = pr.kdsls;
+    pr.kode_desa = pr.kddesa;
+    pr.nama_sls = pr.nmsls;
+    pr.nama_usaha = pr.nmusaha;
+    pr.alamat = pr.nmalamat;
+    pr.jumlah_usaha = pr.jmlusaha;
+    pr.skala_usaha = pr.skalausaha;
+    pr.kode_identitas = pr.kdidentitas;
   });
 
   // Build relasi: attach PPL email from alokasi to biodata

@@ -126,36 +126,48 @@ async function supabaseUpsert(table, data, matchingKey) {
 }
 
 // ===================================================
-// BIODATA FUNCTIONS
+// BIODATA PETUGAS FUNCTIONS
 // ===================================================
 
 async function getAllBiodata() {
-  return await supabaseGet('biodata', '?select=*&order=nama.asc');
+  return await supabaseGet('biodata_petugas', '?select=*&order=nm_lengkap.asc');
 }
 
 async function getBiodataById(id) {
-  return await supabaseGet('biodata', `?id=eq.${id}&select=*`);
+  return await supabaseGet('biodata_petugas', `?id=eq.${id}&select=*`);
+}
+
+async function getBiodataByEmail(email) {
+  return await supabaseGet('biodata_petugas', `?email=eq.${encodeURIComponent(email)}&select=*`);
 }
 
 async function updateBiodataPhone(id, teleponBaru) {
   const teleponFormat = formatPhoneNumber(teleponBaru);
-  return await supabasePatch('biodata', { no_telp: teleponFormat }, `?id=eq.${id}`);
+  return await supabasePatch('biodata_petugas', { nohp: teleponFormat }, `?id=eq.${id}`);
 }
 
 async function updateBiodata(id, data) {
-  return await supabasePatch('biodata', data, `?id=eq.${id}`);
+  return await supabasePatch('biodata_petugas', data, `?id=eq.${id}`);
 }
 
 // ===================================================
-// ALOKASI & PROGRES FUNCTIONS
+// ALOKASI PETUGAS & PROGRES FUNCTIONS
 // ===================================================
 
 async function getAllAlokasi() {
-  return await supabaseGet('alokasi', '?select=*&order=nmdes.asc');
+  return await supabaseGet('alokasi_petugas', '?select=*&order=nmdes.asc');
+}
+
+async function getAlokasiByEmail(email) {
+  return await supabaseGet('alokasi_petugas', `?"EMAIL PENCACAH"=eq.${encodeURIComponent(email)}&select=*`);
 }
 
 async function getAllProgres() {
-  return await supabaseGet('progres', '?select=*&limit=1000');
+  return await supabaseGet('progres_lapangan', '?select=*&limit=50000');
+}
+
+async function getProgresByPetugas(petugasEmail) {
+  return await supabaseGet('progres_lapangan', `?email=eq.${encodeURIComponent(petugasEmail)}&select=*`);
 }
 
 // ===================================================
@@ -166,14 +178,14 @@ async function setActiveSLS(pplEmail, pplNama, slsInfo) {
   const data = {
     ppl_email: pplEmail.toLowerCase(),
     ppl_nama: pplNama,
-    alokasi_id: slsInfo.id,
-    idsubsls: slsInfo.idsubsls,
+    alokasi_id: slsInfo.id || slsInfo.idsubsls,
+    idsubsls: slsInfo.idsubsls || slsInfo.id,
     nmkec: slsInfo.nmkec || '',
-    nmdes: slsInfo.nmdes || '',
-    nmsls: slsInfo.nmsls || '',
+    nmdes: slsInfo.nmdes || slsInfo.nmdesa || '',
+    nmsls: slsInfo.nmsls || slsInfo.nmsubsls || '',
     pml: slsInfo.pml || '',
-    umkm: slsInfo.umkm || 0,
-    fasih: slsInfo.fasih || 0,
+    umkm: parseInt(slsInfo.umkm) || 0,
+    fasih: parseInt(slsInfo.fasih) || 0,
     updated_at: new Date().toISOString()
   };
 
@@ -212,15 +224,15 @@ async function removeActiveSLS(pplEmail) {
 // ===================================================
 
 function downloadBiodataCSV(data) {
-  const headers = ['No', 'Nama', 'Email', 'Posisi', 'Telepon', 'Alamat', 'Desa'];
+  const headers = ['No', 'Nama', 'Email', 'Jabatan', 'Telepon', 'Alamat', 'Desa'];
   const rows = data.map((item, index) => [
     index + 1,
-    item.nama || '-',
+    item.nm_lengkap || '-',
     item.email || '-',
-    item.posisi || '-',
-    formatPhoneNumber(item.no_telp),
+    item.jabatan || '-',
+    formatPhoneNumber(item.nohp),
     item.alamat || '-',
-    item.alamat_desa || '-'
+    item.nmdesa || '-'
   ]);
 
   let csv = headers.join(',') + '\n';
@@ -240,12 +252,12 @@ function downloadBiodataTXT(data) {
   txt += '='.repeat(50) + '\n\n';
 
   data.forEach((item, index) => {
-    txt += `${index + 1}. ${item.nama || '-' }\n`;
+    txt += `${index + 1}. ${item.nm_lengkap || '-' }\n`;
     txt += `   Email   : ${item.email || '-'}\n`;
-    txt += `   Posisi   : ${item.posisi || '-'}\n`;
-    txt += `   Telepon  : ${formatPhoneNumber(item.no_telp)}\n`;
-    txt += `   Alamat   : ${item.alamat || '-'}\n`;
-    txt += `   Desa     : ${item.alamat_desa || '-'}\n`;
+    txt += `   Jabatan : ${item.jabatan || '-'}\n`;
+    txt += `   Telepon : ${formatPhoneNumber(item.nohp)}\n`;
+    txt += `   Alamat  : ${item.alamat || '-'}\n`;
+    txt += `   Desa    : ${item.nmdesa || '-'}\n`;
     txt += '-'.repeat(30) + '\n\n';
   });
 
@@ -260,10 +272,13 @@ function downloadBiodataTXT(data) {
 window.supabase = {
   getAllBiodata,
   getBiodataById,
+  getBiodataByEmail,
   updateBiodataPhone,
   updateBiodata,
   getAllAlokasi,
+  getAlokasiByEmail,
   getAllProgres,
+  getProgresByPetugas,
   setActiveSLS,
   getAllActiveSLS,
   removeActiveSLS,
