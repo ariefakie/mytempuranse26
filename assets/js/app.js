@@ -107,21 +107,31 @@ async function loadAllData() {
 
   // Format all PML/PPL names and villages
   AppData.biodata.forEach(p => {
-    p.nama = titleCase(p.nm_lengkap); // Map nm_lengkap to nama for compatibility
-    p.posisi = p.jabatan; // Map jabatan to posisi for compatibility
+    // Map biodata_petugas columns to internal fields
+    p.nama = titleCase(p.nm_lengkap);
+    p.posisi = p.jabatan;
+    p.no_telp = p.nohp;
+    p.jenis_kelamin = p.kelamin;
     p.alamat_desa = getCleanDesa(p.nmdesa);
+    p.sobat_id = p.sobad_id;
+    p.merk_hp = p.merk_hp || '';
+    p.tipe_hp = p.tipe_hp || '';
   });
   AppData.alokasi.forEach(a => {
+    // Map alokasi_petugas columns to internal fields
     a.pml = titleCase(a["PML"]);
     a.ppl = titleCase(a["PPL"]);
     a.email_pencacah = a["EMAIL PENCACAH"];
     a.email_pengawas = a["EMAIL PENGAWAS"];
     a.nmdes = getCleanDesa(a.nmdes);
+    a.flag_perubahan = a["Flag Perubahan"];
+    a.flag_sls_open = a["Flag SLS Open PBI"];
+    a.kk_open = a["KK Open PBI"];
   });
   AppData.progres.forEach(pr => {
+    // Map progres_lapangan columns to internal fields
     pr.desa = getCleanDesa(pr.nmdesa);
-    pr.petugas = pr.email; // Map email to petugas for compatibility
-    // Map field names for compatibility
+    pr.petugas = pr.email;
     pr.kode_sls = pr.kdsls;
     pr.kode_desa = pr.kddesa;
     pr.nama_sls = pr.nmsls;
@@ -130,6 +140,7 @@ async function loadAllData() {
     pr.jumlah_usaha = pr.jmlusaha;
     pr.skala_usaha = pr.skalausaha;
     pr.kode_identitas = pr.kdidentitas;
+    pr.keterangan = pr.ket;
   });
 
   // Build relasi: attach PPL email from alokasi to biodata

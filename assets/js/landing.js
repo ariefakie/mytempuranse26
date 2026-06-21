@@ -149,10 +149,25 @@ async function loadBiodata() {
 
   // Try Supabase
   try {
-    const data = await supabaseGet('biodata');
+    const data = await supabaseGet('biodata_petugas');
     if (Array.isArray(data) && data.length > 0) {
-      _biodataCache = data;
-      localStorage.setItem('SIMON-SE26TEMPURAN-biodata-cache', JSON.stringify(data));
+      // Map field names from biodata_petugas
+      const mappedData = data.map(p => ({
+        nama: p.nm_lengkap,
+        email: p.email,
+        posisi: p.jabatan,
+        no_telp: p.nohp,
+        sobad_id: p.sobad_id,
+        ttl: p.ttl,
+        umur: p.umur,
+        jenis_kelamin: p.kelamin,
+        pendidikan: p.pendidikan,
+        pekerjaan: p.pekerjaan,
+        alamat: p.alamat,
+        alamat_desa: p.nmdesa
+      }));
+      _biodataCache = mappedData;
+      localStorage.setItem('SIMON-SE26TEMPURAN-biodata-cache', JSON.stringify(mappedData));
       return _biodataCache;
     }
   } catch(e) {}
