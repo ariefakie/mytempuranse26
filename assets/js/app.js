@@ -1,5 +1,5 @@
 // ===================================================
-// SIMON-SE26TEMPURAN SE2026 – Main Application JS
+// SE26TEMPURAN SE2026 – Main Application JS
 // ===================================================
 
 'use strict';
@@ -21,11 +21,11 @@ const COLORS = ['#6366f1','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4','#ec
 
 async function init() {
   // Auth check
-  CurrentUser = JSON.parse(sessionStorage.getItem('SIMON-SE26TEMPURAN-user') || localStorage.getItem('SIMON-SE26TEMPURAN-user') || 'null');
+  CurrentUser = JSON.parse(sessionStorage.getItem('SE26TEMPURAN-user') || localStorage.getItem('SE26TEMPURAN-user') || 'null');
   if (!CurrentUser) { window.location.href = 'index.html'; return; }
 
   // Apply saved theme
-  const theme = localStorage.getItem('SIMON-SE26TEMPURAN-theme') || 'dark';
+  const theme = localStorage.getItem('SE26TEMPURAN-theme') || 'dark';
   document.body.className = theme === 'light' ? 'light-mode' : 'dark-mode';
 
   // Set user info
@@ -1627,13 +1627,13 @@ async function saveProfil(id) {
       }
 
       // Update session with name only
-      const userData = JSON.parse(sessionStorage.getItem('SIMON-SE26TEMPURAN-user') || '{}');
+      const userData = JSON.parse(sessionStorage.getItem('SE26TEMPURAN-user') || '{}');
       if (userData) {
         userData.name = nama;
-        sessionStorage.setItem('SIMON-SE26TEMPURAN-user', JSON.stringify(userData));
+        sessionStorage.setItem('SE26TEMPURAN-user', JSON.stringify(userData));
         // Only update localStorage if remember me was checked
-        if (localStorage.getItem('SIMON-SE26TEMPURAN-user')) {
-          localStorage.setItem('SIMON-SE26TEMPURAN-user', JSON.stringify(userData));
+        if (localStorage.getItem('SE26TEMPURAN-user')) {
+          localStorage.setItem('SE26TEMPURAN-user', JSON.stringify(userData));
         }
       }
 
@@ -1721,7 +1721,7 @@ function updateClock() {
 function toggleTheme() {
   const isLight = document.body.classList.contains('light-mode');
   document.body.className = isLight ? 'dark-mode' : 'light-mode';
-  localStorage.setItem('SIMON-SE26TEMPURAN-theme', isLight ? 'dark' : 'light');
+  localStorage.setItem('SE26TEMPURAN-theme', isLight ? 'dark' : 'light');
 }
 
 function openSidebar() {
@@ -1738,17 +1738,17 @@ document.getElementById('sidebarClose')?.addEventListener('click', closeSidebar)
 
 function handleLogout() {
   // Clear user session (sessionStorage)
-  sessionStorage.removeItem('SIMON-SE26TEMPURAN-user');
+  sessionStorage.removeItem('SE26TEMPURAN-user');
 
   // Clear localStorage (if remember me was used)
-  localStorage.removeItem('SIMON-SE26TEMPURAN-user');
+  localStorage.removeItem('SE26TEMPURAN-user');
 
   // Clear app caches (IMPORTANT for sync)
-  localStorage.removeItem('SIMON-SE26TEMPURAN-biodata-cache');
-  localStorage.removeItem('SIMON-SE26TEMPURAN-theme');
+  localStorage.removeItem('SE26TEMPURAN-biodata-cache');
+  localStorage.removeItem('SE26TEMPURAN-theme');
 
   // Clear any active SLS tracking
-  const userData = JSON.parse(sessionStorage.getItem('SIMON-SE26TEMPURAN-user') || '{}');
+  const userData = JSON.parse(sessionStorage.getItem('SE26TEMPURAN-user') || '{}');
   if (userData.email) {
     localStorage.removeItem(`active-sls-${userData.email.toLowerCase()}`);
     localStorage.removeItem(`active-sls-${userData.email.toLowerCase()}_updated`);

@@ -3,41 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SE26TEMPURAN-APP – Sensus Ekonomi Kecamatan Tempuran</title>
+  <title>SE26TEMPURAN-APP – Sensus Ekonomi 2026 Kecamatan Tempuran</title>
   <meta name="description" content="Sistem Monitoring Real-time Sensus Ekonomi 2026 Kecamatan Tempuran, Karawang – pantau progres lapangan, alokasi petugas, dan biodata secara terpadu." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/css/landing.css" />
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230B4D3C'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='16' font-weight='bold'>SE</text></svg>" />
 </head>
 <body class="dark-mode">
-
-<!-- Animated BG -->
-<div class="bg-animated">
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-  <div class="particles" id="particles"></div>
-</div>
 
 <!-- NAVBAR -->
 <nav class="navbar" id="navbar">
   <div class="nav-inner">
-    <div class="nav-brand">
-      <div class="brand-icon">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-          <rect width="32" height="32" rx="8" fill="url(#brandGrad)"/>
-          <path d="M8 22L13 12L18 18L22 10" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="24" cy="9" r="2.5" fill="white"/>
-          <defs><linearGradient id="brandGrad" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
-        </svg>
+    <a href="#" class="nav-brand">
+      <div class="nav-logo">SE</div>
+      <div class="nav-brand-text">
+        <span class="nav-brand-name">SE26TEMPURAN</span>
+        <span class="nav-brand-sub">Sensus Ekonomi 2026 · Karawang</span>
       </div>
-      <div class="brand-text">
-        <span class="brand-name">SE26TEMPURAN-APP</span>
-        <span class="brand-sub">SE2026 Tempuran</span>
-      </div>
-    </div>
+    </a>
     <div class="nav-actions">
-      <button class="btn-theme-toggle" id="themeToggle" title="Toggle tema">
+      <button class="btn-theme-toggle" id="themeToggle" title="Ganti tema">
         <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
@@ -46,7 +34,7 @@
   </div>
 </nav>
 
-<!-- HERO -->
+<!-- HERO SECTION -->
 <section class="hero">
   <div class="hero-content">
     <div class="hero-badge">
@@ -56,53 +44,55 @@
     <h1 class="hero-title">
       <span class="title-line">Monitoring</span>
       <span class="title-line gradient-text">Sensus Ekonomi 2026</span>
-      <span class="title-line">Kecamatan Tempuran Kabupaten Karawang</span>
+      <span class="title-line">Kecamatan Tempuran, Karawang</span>
     </h1>
     <p class="hero-desc">
-      Platform terpadu untuk memantau progres pendataan lapangan, alokasi petugas, dan biodata petugas secara real-time. Didukung data 6 PML dan 46 PPL di 14 desa Kecamatan Tempuran, Kabupaten Karawang.
+      Platform terpadu untuk memantau progres pendataan lapangan, alokasi petugas, dan biodata secara real-time. Dengan dukungan 6 PML dan 46 PPL di 14 desa.
     </p>
     <div class="hero-stats">
       <div class="stat-item">
         <div class="stat-value" data-target="8851">0</div>
         <div class="stat-label">Total Listing</div>
       </div>
-      <div class="stat-divider"></div>
       <div class="stat-item">
-        <div class="stat-value" data-target="46">0</div>
-        <div class="stat-label">PPL Aktif</div>
+        <div class="stat-value" data-target="52">0</div>
+        <div class="stat-label">Petugas</div>
       </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <div class="stat-value" data-target="6">0</div>
-        <div class="stat-label">PML</div>
-      </div>
-      <div class="stat-divider"></div>
       <div class="stat-item">
         <div class="stat-value" data-target="14">0</div>
-        <div class="stat-label">Desa/Kel</div>
+        <div class="stat-label">Desa</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" data-target="252">0</div>
+        <div class="stat-label">SLS</div>
       </div>
     </div>
     <div class="hero-cta">
       <a href="#login-section" class="btn-primary">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10,17 15,12 10,7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-        Masuk ke Dashboard
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10,17 15,12 10,7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Masuk ke Sistem
       </a>
-      <a href="#features" class="btn-outline">Lihat Fitur</a>
+      <a href="#features" class="btn-outline">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        Pelajari Fitur
+      </a>
     </div>
   </div>
   <div class="hero-visual">
     <div class="dashboard-preview">
       <div class="preview-header">
         <div class="preview-dots">
-          <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
         </div>
-        <span class="preview-title">Dashboard SE26TEMPURAN-APP</span>
+        <span class="preview-title">Dashboard SE26TEMPURAN</span>
       </div>
       <div class="preview-content">
         <div class="preview-stats-grid">
           <div class="prev-stat">
-            <div class="prev-stat-icon" style="background:rgba(99,102,241,0.2);color:#818cf8">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+            <div class="prev-stat-icon" style="background: rgba(11, 77, 60, 0.1); color: var(--bps-green);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
             </div>
             <div>
               <div class="prev-val">8,851</div>
@@ -110,86 +100,139 @@
             </div>
           </div>
           <div class="prev-stat">
-            <div class="prev-stat-icon" style="background:rgba(34,197,94,0.2);color:#4ade80">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            </div>
-            <div>
-              <div class="prev-val">52</div>
-              <div class="prev-lbl">Total Petugas</div>
-            </div>
-          </div>
-          <div class="prev-stat">
-            <div class="prev-stat-icon" style="background:rgba(245,158,11,0.2);color:#fbbf24">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+            <div class="prev-stat-icon" style="background: rgba(13, 159, 110, 0.1); color: var(--success);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
             </div>
             <div>
               <div class="prev-val">1.88%</div>
               <div class="prev-lbl">Selesai</div>
             </div>
           </div>
+          <div class="prev-stat">
+            <div class="prev-stat-icon" style="background: rgba(201, 162, 39, 0.1); color: var(--bps-gold);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div>
+              <div class="prev-val">52</div>
+              <div class="prev-lbl">Petugas</div>
+            </div>
+          </div>
         </div>
-        <div class="preview-bar-label">Progress 6 PML</div>
+        <div class="preview-bar-label">Progres per PML</div>
         <div class="preview-bars">
-          <div class="prev-bar-row"><span>Rifah Nur U.</span><div class="prev-bar"><div class="prev-bar-fill" style="width:25%;background:#6366f1"></div></div><span>25%</span></div>
-          <div class="prev-bar-row"><span>Cep Heri Y.</span><div class="prev-bar"><div class="prev-bar-fill" style="width:18%;background:#8b5cf6"></div></div><span>18%</span></div>
-          <div class="prev-bar-row"><span>Ujang M.</span><div class="prev-bar"><div class="prev-bar-fill" style="width:15%;background:#a78bfa"></div></div><span>15%</span></div>
-          <div class="prev-bar-row"><span>Taip S.</span><div class="prev-bar"><div class="prev-bar-fill" style="width:22%;background:#c4b5fd"></div></div><span>22%</span></div>
-          <div class="prev-bar-row"><span>Halim D.</span><div class="prev-bar"><div class="prev-bar-fill" style="width:30%;background:#06b6d4"></div></div><span>30%</span></div>
-          <div class="prev-bar-row"><span>Iskandar D.</span><div class="prev-bar"><div class="prev-bar-fill" style="width:10%;background:#10b981"></div></div><span>10%</span></div>
+          <div class="prev-bar-row">
+            <span>Rifah Nur U.</span>
+            <div class="prev-bar"><div class="prev-bar-fill" style="width: 25%; background: linear-gradient(90deg, var(--bps-green), var(--bps-green-light))"></div></div>
+            <span>25%</span>
+          </div>
+          <div class="prev-bar-row">
+            <span>Cep Heri Y.</span>
+            <div class="prev-bar"><div class="prev-bar-fill" style="width: 18%; background: linear-gradient(90deg, var(--bps-green), var(--bps-green-light))"></div></div>
+            <span>18%</span>
+          </div>
+          <div class="prev-bar-row">
+            <span>Ujang M.</span>
+            <div class="prev-bar"><div class="prev-bar-fill" style="width: 15%; background: linear-gradient(90deg, var(--bps-green), var(--bps-green-light))"></div></div>
+            <span>15%</span>
+          </div>
+          <div class="prev-bar-row">
+            <span>Taip S.</span>
+            <div class="prev-bar"><div class="prev-bar-fill" style="width: 22%; background: linear-gradient(90deg, var(--bps-green), var(--bps-green-light))"></div></div>
+            <span>22%</span>
+          </div>
+          <div class="prev-bar-row">
+            <span>Halim D.</span>
+            <div class="prev-bar"><div class="prev-bar-fill" style="width: 30%; background: linear-gradient(90deg, var(--bps-green), var(--bps-green-light))"></div></div>
+            <span>30%</span>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- FEATURES -->
+<!-- BPS OFFICIAL BADGE -->
+<section class="bps-logo-section">
+  <div class="bps-badge">
+    <div class="bps-badge-icon">BPS</div>
+    <div>
+      <div class="bps-badge-text">Badan Pusat Statistik</div>
+      <div class="bps-badge-sub">Republik Indonesia</div>
+    </div>
+  </div>
+  <div class="bps-badge">
+    <div class="bps-badge-icon">KAB</div>
+    <div>
+      <div class="bps-badge-text">Kabupaten Karawang</div>
+      <div class="bps-badge-sub">Provinsi Jawa Barat</div>
+    </div>
+  </div>
+  <div class="bps-badge">
+    <div class="bps-badge-icon">SE</div>
+    <div>
+      <div class="bps-badge-text">Sensus Ekonomi 2026</div>
+      <div class="bps-badge-sub">Long Form SP2020-LF</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES SECTION -->
 <section class="features" id="features">
   <div class="section-container">
-    <div class="section-badge">Fitur Utama</div>
+    <div class="section-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+      Fitur Unggulan
+    </div>
     <h2 class="section-title">Semua yang Anda Butuhkan</h2>
-    <p class="section-desc">Platform monitoring terintegrasi untuk seluruh siklus Sensus Ekonomi 2026</p>
+    <p class="section-desc">Platform monitoring terintegrasi untuk seluruh siklus Sensus Ekonomi 2026 di Kecamatan Tempuran</p>
+
     <div class="features-grid">
       <div class="feature-card">
-        <div class="feature-icon" style="--accent:#6366f1">
+        <div class="feature-icon">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
         </div>
         <h3>Dashboard Real-time</h3>
-        <p>Pantau progres keseluruhan dengan grafik interaktif dan statistik terkini secara langsung.</p>
+        <p>Pantau progres keseluruhan dengan statistik dan ringkasan data terkini secara langsung dari lapangan.</p>
       </div>
+
       <div class="feature-card">
-        <div class="feature-icon" style="--accent:#10b981">
+        <div class="feature-icon">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
         </div>
         <h3>Progres Lapangan</h3>
-        <p>Lacak status pendataan 8.851 listing per SLS, per PPL, dan per desa secara detail.</p>
+        <p>Lacak status pendataan listing per SLS, per PPL, dan per desa dengan detail lengkap.</p>
       </div>
+
       <div class="feature-card">
-        <div class="feature-icon" style="--accent:#f59e0b">
+        <div class="feature-icon">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
         <h3>Biodata Petugas</h3>
-        <p>Kelola data lengkap 49 petugas termasuk kompetensi, kontak, dan riwayat pengalaman BPS.</p>
+        <p>Kelola data lengkap petugas termasuk kompetensi, kontak, dan pengalaman sensus sebelumnya.</p>
       </div>
+
       <div class="feature-card">
-        <div class="feature-icon" style="--accent:#ef4444">
+        <div class="feature-icon">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         </div>
         <h3>Alokasi Petugas</h3>
-        <p>Tampilkan peta alokasi 252 SLS kepada 46 PPL di bawah pengawasan 6 PML dengan relasi lengkap.</p>
+        <p>Tampilkan peta alokasi SLS kepada PPL di bawah pengawasan PML dengan relasi lengkap.</p>
       </div>
+
       <div class="feature-card">
-        <div class="feature-icon" style="--accent:#8b5cf6">
+        <div class="feature-icon">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </div>
         <h3>Filter & Pencarian</h3>
         <p>Cari data berdasarkan desa, PPL, PML, status, atau SLS dengan filter multi-dimensi.</p>
       </div>
+
       <div class="feature-card">
-        <div class="feature-icon" style="--accent:#06b6d4">
+        <div class="feature-icon">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
         </div>
-        <h3>Mobile-First</h3>
-        <p>Dioptimalkan untuk perangkat mobile sehingga PML dan PPL bisa memantau langsung dari lapangan.</p>
+        <h3>Responsif Mobile</h3>
+        <p>Dioptimalkan untuk perangkat mobile sehingga bisa dipantau langsung dari lokasi pendataan.</p>
       </div>
     </div>
   </div>
@@ -200,19 +243,14 @@
   <div class="login-container">
     <div class="login-left">
       <div class="login-brand-logo">
-        <svg width="48" height="48" viewBox="0 0 32 32" fill="none">
-          <rect width="32" height="32" rx="8" fill="url(#loginGrad)"/>
-          <path d="M8 22L13 12L18 18L22 10" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="24" cy="9" r="2.5" fill="white"/>
-          <defs><linearGradient id="loginGrad" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
-        </svg>
-        <div>
-          <div class="lbl-SIMON-SE26TEMPURAN">SE26TEMPURAN-APP</div>
-          <div class="lbl-se">Sensus Ekonomi 2026</div>
+        <div class="login-logo">SE</div>
+        <div class="login-brand-info">
+          <div class="login-brand-name">SE26TEMPURAN-APP</div>
+          <div class="login-brand-sub">Sensus Ekonomi 2026</div>
         </div>
       </div>
       <h2 class="login-title">Selamat Datang</h2>
-      <p class="login-sub">Masuk ke sistem monitoring pendataan Kecamatan Tempuran</p>
+      <p class="login-sub">Masuk ke sistem monitoring pendataan Sensus Ekonomi 2026 Kecamatan Tempuran, Kabupaten Karawang</p>
 
       <form class="login-form" id="loginForm" onsubmit="handleLogin(event)">
         <div class="form-group">
@@ -228,33 +266,49 @@
             <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             <input type="password" id="loginPassword" placeholder="Password Anda" required autocomplete="current-password" />
             <button type="button" class="btn-eye" id="btnEye" onclick="togglePassword()">
-              <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8-8-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
           </div>
         </div>
         <div class="form-row">
           <label class="checkbox-label">
-            <input type="checkbox" id="rememberMe" /> Ingat saya
+            <input type="checkbox" id="rememberMe" />
+            Ingat saya
           </label>
         </div>
         <button type="submit" class="btn-login" id="btnLogin">
           <span class="btn-text">Masuk ke Dashboard</span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          <span class="btn-loader" id="btnLoader"></span>
+          <span class="btn-loader"></span>
         </button>
         <div class="login-error" id="loginError"></div>
       </form>
+
+      <div class="login-hint">
+        <strong>Hint:</strong><br>
+        Admin: Gunakan username <code>admin</code> dengan password <code>SE2026TEMPURAN</code><br>
+        PML/PPL: Gunakan email resmi dari daftar petugas
+      </div>
     </div>
+
     <div class="login-right">
       <div class="login-visual-card">
-        <div class="lv-badge">Live Status</div>
-        <div class="lv-title">Progres Hari Ini</div>
+        <div class="lv-badge">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+          Live Status
+        </div>
+        <div class="lv-title">Progres Real-time</div>
         <div class="lv-ring-wrap">
           <svg viewBox="0 0 120 120" width="120" height="120">
-            <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(99,102,241,0.15)" stroke-width="12"/>
-            <circle cx="60" cy="60" r="50" fill="none" stroke="url(#ringGrad)" stroke-width="12" stroke-linecap="round"
+            <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(11, 77, 60, 0.1)" stroke-width="12"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="url(#bpsGrad)" stroke-width="12" stroke-linecap="round"
               stroke-dasharray="314" stroke-dashoffset="305" transform="rotate(-90 60 60)" id="progressRing"/>
-            <defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
+            <defs>
+              <linearGradient id="bpsGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0B4D3C"/>
+                <stop offset="100%" stop-color="#149567"/>
+              </linearGradient>
+            </defs>
           </svg>
           <div class="ring-center">
             <div class="ring-pct">1.88%</div>
@@ -263,23 +317,25 @@
         </div>
         <div class="lv-stats">
           <div class="lv-stat">
-            <span class="lv-dot" style="background:#4ade80"></span>
+            <span class="lv-dot" style="background: var(--success)"></span>
             <span>Approved: <strong>8</strong></span>
           </div>
           <div class="lv-stat">
-            <span class="lv-dot" style="background:#fbbf24"></span>
+            <span class="lv-dot" style="background: var(--warning)"></span>
             <span>Submitted: <strong>154</strong></span>
           </div>
           <div class="lv-stat">
-            <span class="lv-dot" style="background:#6366f1"></span>
+            <span class="lv-dot" style="background: var(--bps-green)"></span>
             <span>Draft: <strong>21</strong></span>
           </div>
           <div class="lv-stat">
-            <span class="lv-dot" style="background:#64748b"></span>
+            <span class="lv-dot" style="background: var(--text-dim)"></span>
             <span>Open: <strong>8,662</strong></span>
           </div>
         </div>
-        <div class="lv-footer">Kecamatan Tempuran · SE2026</div>
+        <div class="lv-footer">
+          BPS Kabupaten Karawang · Kecamatan Tempuran · SE2026
+        </div>
       </div>
     </div>
   </div>
@@ -289,11 +345,18 @@
 <footer class="footer">
   <div class="footer-inner">
     <div class="footer-brand">
-      <span class="footer-logo">SE26TEMPURAN-APP</span>
-      <span class="footer-tagline">Sistem Monitoring Real-time SE2026</span>
+      <div class="footer-logo">SE26TEMPURAN-APP</div>
+      <div class="footer-tagline">Sistem Monitoring Real-time Sensus Ekonomi 2026</div>
+      <div class="footer-links">
+        <a href="#">Tentang</a>
+        <a href="#">Bantuan</a>
+        <a href="#">Kontak</a>
+      </div>
     </div>
     <div class="footer-info">
-      <span>BPS Karawang · Kecamatan Tempuran · 2026</span>
+      <div>BPS Kabupaten Karawang</div>
+      <div>Kecamatan Tempuran</div>
+      <div style="margin-top: 8px; color: rgba(255,255,255,0.5); font-size: 12px;">© 2026 Hak Cipta Dilindungi</div>
     </div>
   </div>
 </footer>

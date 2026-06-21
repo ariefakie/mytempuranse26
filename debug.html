@@ -3,18 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Debug Headers</title>
+  <title>Debug Headers - SE26TEMPURAN</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial; background: #1a1a2e; color: white; padding: 20px; }
-    h1 { color: #818cf8; }
-    pre { background: #0f0f1a; padding: 20px; border-radius: 8px; overflow-x: auto; }
-    .file-input { margin: 20px 0; }
-    .match { color: #4ade80; }
-    .mismatch { color: #f87171; }
-    table { border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #333; padding: 8px 12px; text-align: left; }
-    th { background: #333; }
+    :root {
+      --bps-green-dark: #0B4D3C;
+      --bps-green: #0D6347;
+      --bps-green-light: #149567;
+      --bps-gold: #C9A227;
+      --bg: #F8FAFB;
+      --bg-card: #FFFFFF;
+      --bg-2: #F1F5F4;
+      --text: #1A2E28;
+      --text-muted: #5A6E68;
+      --text-dim: #8B9E96;
+      --border: rgba(11, 77, 60, 0.12);
+      --success: #0D9F6E;
+      --danger: #DC3545;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 2px 16px rgba(11, 77, 60, 0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); padding: 24px; }
+    h1 { color: var(--bps-green-dark); font-size: 24px; margin-bottom: 20px; }
+    h2 { color: var(--bps-green); font-size: 16px; margin: 20px 0 12px; font-weight: 700; }
+    pre { background: var(--bg-2); border: 1px solid var(--border); padding: 16px; border-radius: var(--radius-sm); overflow-x: auto; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+    .file-input { margin: 16px 0; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-card); width: 100%; }
+    .match { color: var(--success); font-weight: 600; }
+    .mismatch { color: var(--danger); font-weight: 600; }
+    table { border-collapse: collapse; margin-top: 16px; width: 100%; }
+    th, td { border: 1px solid var(--border); padding: 10px 14px; text-align: left; font-size: 13px; }
+    th { background: var(--bps-green); color: white; font-weight: 700; }
+    tr:nth-child(even) { background: var(--bg-2); }
   </style>
 </head>
 <body>
@@ -26,66 +49,19 @@
   <pre id="excelHeaders">Upload file dulu...</pre>
 
   <h2>Kolom Database:</h2>
-  <pre id="dbHeaders">biodata:
-- id
-- nama
-- email
-- posisi
-- no_telp
-- alamat
-- alamat_desa
-- ttl
-- umur
-- jenis_kelamin
-- pendidikan
-- pekerjaan
-- punya_kendaraan
-- bisa_motor
-- punya_hp_android
-- merk_hp
-- tipe_hp
-- berpengalaman_capi
-- pernah_se
-- status_nik
-- created_at
-- updated_at
+  <pre>biodata:
+- id, nama, email, posisi, no_telp, alamat, alamat_desa, ttl, umur, jenis_kelamin,
+  pendidikan, pekerjaan, punya_kendaraan, bisa_motor, punya_hp_android, merk_hp, tipe_hp,
+  berpengalaman_capi, pernah_se, status_nik, created_at, updated_at
 
 alokasi:
-- id
-- idsubsls
-- nmkec
-- nmdes
-- nmsls
-- kddesa
-- kdsls
-- pml
-- ppl
-- email_pengawas
-- email_pencacah
-- umkm
-- fasih
-- flag_perubahan
-- created_at
+- id, idsubsls, nmkec, nmdes, nmsls, kddesa, kdsls, pml, ppl,
+  email_pengawas, email_pencacah, umkm, fasih, flag_perubahan, created_at
 
 progres:
-- id
-- kode_identitas
-- nama_usaha
-- nama_sls
-- alamat
-- nib
-- skala_usaha
-- jumlah_usaha
-- kode_sls
-- kode_desa
-- desa
-- latitude
-- longitude
-- mode
-- status
-- keterangan
-- petugas
-- created_at</pre>
+- id, kode_identitas, nama_usaha, nama_sls, alamat, nib, skala_usaha,
+  jumlah_usaha, kode_sls, kode_desa, desa, latitude, longitude, mode,
+  status, keterangan, petugas, created_at</pre>
 
   <h2>Comparison:</h2>
   <div id="comparison"></div>
@@ -111,7 +87,6 @@ progres:
 
       document.getElementById('excelHeaders').textContent = headers.join('\n');
 
-      // Show comparison
       const dbHeaders = {
         biodata: ['id','nama','email','posisi','no_telp','alamat','alamat_desa','ttl','umur','jenis_kelamin','pendidikan','pekerjaan','punya_kendaraan','bisa_motor','punya_hp_android','merk_hp','tipe_hp','berpengalaman_capi','pernah_se','status_nik'],
         alokasi: ['idsubsls','nmkec','nmdes','nmsls','kddesa','kdsls','pml','ppl','email_pengawas','email_pencacah','umkm','fasih','flag_perubahan'],

@@ -1,35 +1,37 @@
 // ===================================================
-// SIMON-SE26TEMPURAN SE2026 – Landing Page JS
+// SE26TEMPURAN-APP - Landing Page JS
+// Theme: Professional Government (BPS Indonesia)
 // ===================================================
 
-// --- Theme Toggle ---
-const themeToggle = document.getElementById('themeToggle');
-const body = document.body;
+'use strict';
 
+// --- Theme Toggle ---
 function setTheme(mode) {
-  body.className = mode === 'light' ? 'light-mode' : 'dark-mode';
-  localStorage.setItem('SIMON-SE26TEMPURAN-theme', mode);
+  document.body.className = mode === 'light' ? 'light-mode' : 'dark-mode';
+  localStorage.setItem('SE26TEMPURAN-theme', mode);
 }
 
-const savedTheme = localStorage.getItem('SIMON-SE26TEMPURAN-theme') || 'dark';
+const savedTheme = localStorage.getItem('SE26TEMPURAN-theme') || 'dark';
 setTheme(savedTheme);
 
-themeToggle?.addEventListener('click', () => {
-  const current = body.classList.contains('light-mode') ? 'light' : 'dark';
+document.getElementById('themeToggle')?.addEventListener('click', () => {
+  const current = document.body.classList.contains('light-mode') ? 'light' : 'dark';
   setTheme(current === 'light' ? 'dark' : 'light');
 });
 
-// --- Navbar scroll ---
+// --- Navbar scroll effect ---
 window.addEventListener('scroll', () => {
   const nav = document.getElementById('navbar');
   if (nav) {
+    const isLight = document.body.classList.contains('light-mode');
     nav.style.background = window.scrollY > 20
-      ? (body.classList.contains('light-mode') ? 'rgba(248,250,252,0.97)' : 'rgba(10,10,15,0.95)')
-      : '';
+      ? (isLight ? 'rgba(248, 250, 251, 0.98)' : 'rgba(11, 31, 26, 0.98)')
+      : (isLight ? 'rgba(248, 250, 251, 0.95)' : 'rgba(11, 31, 26, 0.95)');
+    nav.style.boxShadow = window.scrollY > 20 ? '0 2px 16px rgba(0, 0, 0, 0.08)' : 'none';
   }
 });
 
-// --- Simple Counter Animation ---
+// --- Counter Animation ---
 function animateCounters() {
   const counters = document.querySelectorAll('.stat-value[data-target]');
   counters.forEach(counter => {
@@ -50,37 +52,8 @@ function animateCounters() {
 }
 
 window.addEventListener('load', () => {
-  setTimeout(animateCounters, 500);
+  setTimeout(animateCounters, 600);
 });
-
-// --- Particles ---
-function createParticles() {
-  const container = document.getElementById('particles');
-  if (!container) return;
-  for (let i = 0; i < 40; i++) {
-    const p = document.createElement('div');
-    p.style.cssText = `
-      position:absolute;
-      width:${Math.random()*3+1}px; height:${Math.random()*3+1}px;
-      background:rgba(${Math.random()>0.5?'99,102,241':'139,92,246'},${Math.random()*0.4+0.1});
-      border-radius:50%;
-      left:${Math.random()*100}%; top:${Math.random()*100}%;
-      animation:particleFloat ${Math.random()*15+10}s ease-in-out infinite;
-      animation-delay:-${Math.random()*20}s;
-    `;
-    container.appendChild(p);
-  }
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes particleFloat {
-      0%,100%{transform:translate(0,0) scale(1);opacity:0.3}
-      33%{transform:translate(15px,-15px) scale(1.2);opacity:0.7}
-      66%{transform:translate(-15px,15px) scale(0.8);opacity:0.4}
-    }
-  `;
-  document.head.appendChild(style);
-}
-createParticles();
 
 // --- Password Toggle ---
 function togglePassword() {
@@ -91,7 +64,7 @@ function togglePassword() {
     icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
   } else {
     pwd.type = 'password';
-    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8-8-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
   }
 }
 
@@ -110,49 +83,32 @@ const FALLBACK_BIODATA = [
   { nama: "Iskandar Dinata", email: "iskandardinata594@gmail.com", posisi: "PML" },
 ];
 
-// Cache with timestamp (NO CACHE - always fetch fresh from Supabase)
-const CACHE_KEY = 'SIMON-SE26TEMPURAN-biodata-cache';
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes (still useful for rapid page switches)
-
-let _biodataCache = null;
-let _cacheTimestamp = 0;
-
-// --- Load Biodata from Supabase (NO PERSISTENT CACHE) ---
+// --- Load Biodata from Supabase ---
 async function loadBiodata() {
-  // Use in-memory cache if fresh (within TTL)
-  if (_biodataCache && (Date.now() - _cacheTimestamp) < CACHE_TTL) {
-    return _biodataCache;
-  }
-
-  // Always fetch fresh from Supabase
   try {
-    const rawData = await window.supabase.supabaseGet('biodata_petugas');
-    if (Array.isArray(rawData) && rawData.length > 0) {
-      // Map using unified field mapping from supabase.js
-      _biodataCache = rawData.map(p => ({
-        nama: p.nm_lengkap,
-        email: p.email,
-        posisi: p.jabatan,
-        no_telp: p.nohp,
-        sobad_id: p.sobad_id,
-        ttl: p.ttl,
-        umur: p.umur,
-        jenis_kelamin: p.kelamin,
-        pendidikan: p.pendidikan,
-        pekerjaan: p.pekerjaan,
-        alamat: p.alamat,
-        alamat_desa: p.nmdesa
-      }));
-      _cacheTimestamp = Date.now();
-      return _biodataCache;
+    if (window.supabase) {
+      const rawData = await window.supabase.supabaseGet('biodata_petugas');
+      if (Array.isArray(rawData) && rawData.length > 0) {
+        return rawData.map(p => ({
+          nama: p.nm_lengkap,
+          email: p.email,
+          posisi: p.jabatan,
+          no_telp: p.nohp,
+          sobad_id: p.sobad_id,
+          ttl: p.ttl,
+          umur: p.umur,
+          jenis_kelamin: p.kelamin,
+          pendidikan: p.pendidikan,
+          pekerjaan: p.pekerjaan,
+          alamat: p.alamat,
+          alamat_desa: p.nmdesa
+        }));
+      }
     }
   } catch(e) {
     console.warn('Failed to fetch from Supabase:', e);
   }
-
-  // Fallback to hardcoded data
-  _biodataCache = FALLBACK_BIODATA;
-  return _biodataCache;
+  return FALLBACK_BIODATA;
 }
 
 // --- Login Handler ---
@@ -165,12 +121,12 @@ async function handleLogin(e) {
   const errEl = document.getElementById('loginError');
 
   if (!emailRaw) {
-    errEl.textContent = '⚠ Email/username belum diisi.';
+    errEl.textContent = 'Email/username belum diisi.';
     errEl.classList.add('show');
     return;
   }
   if (!password) {
-    errEl.textContent = '⚠ Password belum diisi.';
+    errEl.textContent = 'Password belum diisi.';
     errEl.classList.add('show');
     return;
   }
@@ -188,7 +144,7 @@ async function handleLogin(e) {
         role: 'admin',
         loginTime: new Date().toISOString()
       };
-      _saveAndRedirect(userData);
+      saveAndRedirect(userData);
       return;
     }
 
@@ -210,35 +166,35 @@ async function handleLogin(e) {
           role: isPML ? 'pml' : 'ppl',
           loginTime: new Date().toISOString()
         };
-        _saveAndRedirect(userData);
+        saveAndRedirect(userData);
         return;
       } else {
         btn.classList.remove('loading');
-        errEl.textContent = `⚠ Password salah. Gunakan: ${isPML ? 'PML2026Tempuran' : 'PPL2026Tempuran'}`;
+        errEl.textContent = `Password salah. Gunakan: ${isPML ? 'PML2026Tempuran' : 'PPL2026Tempuran'}`;
         errEl.classList.add('show');
         return;
       }
     }
 
     btn.classList.remove('loading');
-    errEl.textContent = '⚠ Akun tidak ditemukan.';
+    errEl.textContent = 'Akun tidak ditemukan.';
 
   } catch(err) {
     btn.classList.remove('loading');
-    errEl.textContent = '⚠ Terjadi kesalahan koneksi.';
+    errEl.textContent = 'Terjadi kesalahan koneksi.';
   }
 }
 
-function _saveAndRedirect(userData) {
-  sessionStorage.setItem('SIMON-SE26TEMPURAN-user', JSON.stringify(userData));
+function saveAndRedirect(userData) {
+  sessionStorage.setItem('SE26TEMPURAN-user', JSON.stringify(userData));
   if (document.getElementById('rememberMe')?.checked) {
-    localStorage.setItem('SIMON-SE26TEMPURAN-user', JSON.stringify(userData));
+    localStorage.setItem('SE26TEMPURAN-user', JSON.stringify(userData));
   }
   window.location.href = 'dashboard.html';
 }
 
 // --- Auto-login if saved user exists ---
-const saved = sessionStorage.getItem('SIMON-SE26TEMPURAN-user') || localStorage.getItem('SIMON-SE26TEMPURAN-user');
+const saved = sessionStorage.getItem('SE26TEMPURAN-user') || localStorage.getItem('SE26TEMPURAN-user');
 if (saved) {
   try {
     const u = JSON.parse(saved);
@@ -256,6 +212,19 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       ring.style.transition = 'stroke-dashoffset 2s ease';
       ring.style.strokeDashoffset = offset;
-    }, 500);
+    }, 800);
   }
+});
+
+// --- Smooth scroll for anchor links ---
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if (href === '#') return;
+    e.preventDefault();
+    const target = document.querySelector(href);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
 });
