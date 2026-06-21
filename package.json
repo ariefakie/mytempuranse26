@@ -1,0 +1,24 @@
+{
+  "name": "se2026-tempuran-master",
+  "version": "1.0.0",
+  "description": "Platform monitoring real-time untuk Sensus Ekonomi 2026 Kecamatan Tempuran, Kabupaten Karawang. Mendukung 6 PML dan 46 PPL di 14 desa.",
+  "main": "auto-import.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ariefakie/mytempuranse26.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ariefakie/mytempuranse26/issues"
+  },
+  "homepage": "https://github.com/ariefakie/mytempuranse26#readme",
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
+}
