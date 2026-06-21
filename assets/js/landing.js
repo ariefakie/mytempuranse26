@@ -2,26 +2,6 @@
 // SIMON-SE26TEMPURAN SE2026 – Landing Page JS
 // ===================================================
 
-// --- Supabase Config ---
-const SUPABASE_URL = 'https://ebyzqfvfursatmeqdlwc.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVieXpxZnZmdXJzYXRtZXFkbHdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTYxNzksImV4cCI6MjA5NzQ3MjE3OX0.JWJ1ZhaXmSabr0qZ5--pDG3exMj2RCViWjFFGFOAvwU';
-
-async function supabaseGet(table) {
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    return await res.json();
-  } catch (e) {
-    console.error('Supabase error:', e);
-    return null;
-  }
-}
-
 // --- Theme Toggle ---
 const themeToggle = document.getElementById('themeToggle');
 const body = document.body;
@@ -102,7 +82,7 @@ function createParticles() {
 }
 createParticles();
 
-// --- Login ---
+// --- Password Toggle ---
 function togglePassword() {
   const pwd = document.getElementById('loginPassword');
   const icon = document.getElementById('eyeIcon');
@@ -115,12 +95,12 @@ function togglePassword() {
   }
 }
 
-// Static admin - Password: SE2026TEMPURAN
+// --- Static Admin User ---
 const STATIC_USERS = {
   'admin': { password: 'SE2026TEMPURAN', role: 'admin', name: 'Administrator' },
 };
 
-// Fallback biodata
+// --- Fallback Biodata (hardcoded backup) ---
 const FALLBACK_BIODATA = [
   { nama: "Rifah Nur U.", email: "rifahnurulfah46@gmail.com", posisi: "PML" },
   { nama: "Cep Heri Yuswanto", email: "cephery5@gmail.com", posisi: "PML" },
@@ -130,29 +110,26 @@ const FALLBACK_BIODATA = [
   { nama: "Iskandar Dinata", email: "iskandardinata594@gmail.com", posisi: "PML" },
 ];
 
+// Cache with timestamp (NO CACHE - always fetch fresh from Supabase)
+const CACHE_KEY = 'SIMON-SE26TEMPURAN-biodata-cache';
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes (still useful for rapid page switches)
+
 let _biodataCache = null;
+let _cacheTimestamp = 0;
 
+// --- Load Biodata from Supabase (NO PERSISTENT CACHE) ---
 async function loadBiodata() {
-  if (_biodataCache) return _biodataCache;
+  // Use in-memory cache if fresh (within TTL)
+  if (_biodataCache && (Date.now() - _cacheTimestamp) < CACHE_TTL) {
+    return _biodataCache;
+  }
 
-  // Try localStorage first
+  // Always fetch fresh from Supabase
   try {
-    const cached = localStorage.getItem('SIMON-SE26TEMPURAN-biodata-cache');
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        _biodataCache = parsed;
-        return _biodataCache;
-      }
-    }
-  } catch(e) {}
-
-  // Try Supabase
-  try {
-    const data = await supabaseGet('biodata_petugas');
-    if (Array.isArray(data) && data.length > 0) {
-      // Map field names from biodata_petugas
-      const mappedData = data.map(p => ({
+    const rawData = await window.supabase.supabaseGet('biodata_petugas');
+    if (Array.isArray(rawData) && rawData.length > 0) {
+      // Map using unified field mapping from supabase.js
+      _biodataCache = rawData.map(p => ({
         nama: p.nm_lengkap,
         email: p.email,
         posisi: p.jabatan,
@@ -166,30 +143,19 @@ async function loadBiodata() {
         alamat: p.alamat,
         alamat_desa: p.nmdesa
       }));
-      _biodataCache = mappedData;
-      localStorage.setItem('SIMON-SE26TEMPURAN-biodata-cache', JSON.stringify(mappedData));
+      _cacheTimestamp = Date.now();
       return _biodataCache;
     }
-  } catch(e) {}
+  } catch(e) {
+    console.warn('Failed to fetch from Supabase:', e);
+  }
 
-  // Try local JSON
-  try {
-    const res = await fetch('/assets/data/data_biodata.json');
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        _biodataCache = data;
-        localStorage.setItem('SIMON-SE26TEMPURAN-biodata-cache', JSON.stringify(data));
-        return _biodataCache;
-      }
-    }
-  } catch(e) {}
-
-  // Use fallback
+  // Fallback to hardcoded data
   _biodataCache = FALLBACK_BIODATA;
   return _biodataCache;
 }
 
+// --- Login Handler ---
 async function handleLogin(e) {
   e.preventDefault();
   const emailRaw = document.getElementById('loginEmail').value.trim();
@@ -213,7 +179,7 @@ async function handleLogin(e) {
   errEl.classList.remove('show');
 
   try {
-    // Check admin
+    // Check admin first (static user)
     const staticUser = STATIC_USERS[email] || STATIC_USERS[email.split('@')[0]];
     if (staticUser && staticUser.password === password) {
       const userData = {
@@ -226,11 +192,11 @@ async function handleLogin(e) {
       return;
     }
 
-    // Check petugas from Supabase/local
+    // Check petugas from Supabase
     const biodata = await loadBiodata();
     const petugas = biodata.find(p =>
       (p.email?.toLowerCase() === email) ||
-      (p.sobat_id?.toLowerCase() === email)
+      (p.sobad_id?.toLowerCase() === email)
     );
 
     if (petugas) {
@@ -256,12 +222,10 @@ async function handleLogin(e) {
 
     btn.classList.remove('loading');
     errEl.textContent = '⚠ Akun tidak ditemukan.';
-    errEl.classList.add('show');
 
   } catch(err) {
     btn.classList.remove('loading');
-    errEl.textContent = '⚠ Terjadi kesalahan.';
-    errEl.classList.add('show');
+    errEl.textContent = '⚠ Terjadi kesalahan koneksi.';
   }
 }
 
@@ -273,8 +237,8 @@ function _saveAndRedirect(userData) {
   window.location.href = 'dashboard.html';
 }
 
-// Auto-login if saved
-const saved = localStorage.getItem('SIMON-SE26TEMPURAN-user');
+// --- Auto-login if saved user exists ---
+const saved = sessionStorage.getItem('SIMON-SE26TEMPURAN-user') || localStorage.getItem('SIMON-SE26TEMPURAN-user');
 if (saved) {
   try {
     const u = JSON.parse(saved);
@@ -282,7 +246,7 @@ if (saved) {
   } catch(e) {}
 }
 
-// Progress ring
+// --- Progress Ring Animation ---
 document.addEventListener('DOMContentLoaded', () => {
   const ring = document.getElementById('progressRing');
   if (ring) {

@@ -7,6 +7,229 @@ const SUPABASE_URL = 'https://ebyzqfvfursatmeqdlwc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVieXpxZnZmdXJzYXRtZXFkbHdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTYxNzksImV4cCI6MjA5NzQ3MjE3OX0.JWJ1ZhaXmSabr0qZ5--pDG3exMj2RCViWjFFGFOAvwU';
 
 // ===================================================
+// FIELD MAPPING CONFIG (Single Source of Truth)
+// ===================================================
+
+const FIELD_MAPPING = {
+  // Biodata Petugas: frontend → Supabase
+  biodataToSupabase: {
+    nama: 'nm_lengkap',
+    posisi: 'jabatan',
+    no_telp: 'nohp',
+    email: 'email',
+    alamat: 'alamat',
+    alamat_desa: 'nmdesa',
+    ttl: 'ttl',
+    umur: 'umur',
+    jenis_kelamin: 'kelamin',
+    pendidikan: 'pendidikan',
+    pekerjaan: 'pekerjaan',
+    sobad_id: 'sobad_id',
+    merk_hp: 'merk_hp',
+    tipe_hp: 'tipe_hp',
+    punya_hp_android: 'punya_hp_android',
+    punya_kendaraan: 'punya_kendaraan',
+    bisa_motor: 'bisa_motor',
+    berpengalaman_capi: 'berpengalaman_capi',
+    pernah_se: 'pernah_se',
+    status_nik: 'status_nik',
+  },
+
+  // Biodata Petugas: Supabase → frontend
+  supabaseToBiodata: {
+    id: 'id',
+    nm_lengkap: 'nama',
+    jabatan: 'posisi',
+    nohp: 'no_telp',
+    email: 'email',
+    alamat: 'alamat',
+    nmdesa: 'alamat_desa',
+    ttl: 'ttl',
+    umur: 'umur',
+    kelamin: 'jenis_kelamin',
+    pendidikan: 'pendidikan',
+    pekerjaan: 'pekerjaan',
+    sobad_id: 'sobat_id',
+    merk_hp: 'merk_hp',
+    tipe_hp: 'tipe_hp',
+    punya_hp_android: 'punya_hp_android',
+    punya_kendaraan: 'punya_kendaraan',
+    bisa_motor: 'bisa_motor',
+    berpengalaman_capi: 'berpengalaman_capi',
+    pernah_se: 'pernah_se',
+    status_nik: 'status_nik',
+  },
+
+  // Alokasi Petugas: Supabase → frontend
+  alokasiToFrontend: {
+    'PML': 'pml',
+    'PPL': 'ppl',
+    'EMAIL PENCACAH': 'email_pencacah',
+    'EMAIL PENGAWAS': 'email_pengawas',
+    'Flag Perubahan': 'flag_perubahan',
+    'Flag SLS Open PBI': 'flag_sls_open',
+    'KK Open PBI': 'kk_open',
+  },
+
+  // Progres Lapangan: Supabase → frontend
+  progresToFrontend: {
+    email: 'petugas',
+    kdsls: 'kode_sls',
+    kddesa: 'kode_desa',
+    nmsls: 'nama_sls',
+    nmusaha: 'nama_usaha',
+    nmalamat: 'alamat',
+    jmlusaha: 'jumlah_usaha',
+    skalausaha: 'skala_usaha',
+    kdidentitas: 'kode_identitas',
+    ket: 'keterangan',
+    nmdesa: 'desa',
+    nib: 'nib',
+    mode: 'mode',
+    status: 'status',
+  }
+};
+
+// Map Supabase data to frontend format
+function mapBiodataFromSupabase(data) {
+  if (!Array.isArray(data)) return [];
+  return data.map(row => ({
+    id: row.id,
+    nama: row.nm_lengkap || '',
+    email: row.email || '',
+    posisi: row.jabatan || '',
+    no_telp: row.nohp || '',
+    ttl: row.ttl || '',
+    umur: row.umur || '',
+    jenis_kelamin: row.kelamin || '',
+    pendidikan: row.pendidikan || '',
+    pekerjaan: row.pekerjaan || '',
+    alamat: row.alamat || '',
+    alamat_desa: getCleanDesa(row.nmdesa),
+    sobad_id: row.sobad_id || '',
+    merk_hp: row.merk_hp || '',
+    tipe_hp: row.tipe_hp || '',
+    punya_hp_android: row.punya_hp_android || '',
+    punya_kendaraan: row.punya_kendaraan || '',
+    bisa_motor: row.bisa_motor || '',
+    berpengalaman_capi: row.berpengalaman_capi || '',
+    pernah_se: row.pernah_se || '',
+    status_nik: row.status_nik || '',
+    // Original data for reference
+    _original: row
+  }));
+}
+
+// Map frontend data to Supabase format
+function mapBiodataToSupabase(data) {
+  return {
+    nm_lengkap: data.nama,
+    jabatan: data.posisi,
+    nohp: formatPhoneNumber(data.no_telp),
+    email: data.email,
+    alamat: data.alamat,
+    nmdesa: data.alamat_desa,
+    ttl: data.ttl,
+    umur: data.umur,
+    kelamin: data.jenis_kelamin,
+    pendidikan: data.pendidikan,
+    pekerjaan: data.pekerjaan,
+    sobad_id: data.sobad_id,
+    merk_hp: data.merk_hp,
+    tipe_hp: data.tipe_hp,
+    punya_hp_android: data.punya_hp_android,
+    punya_kendaraan: data.punya_kendaraan,
+    bisa_motor: data.bisa_motor,
+    berpengalaman_capi: data.berpengalaman_capi,
+    pernah_se: data.pernah_se,
+    status_nik: data.status_nik,
+  };
+}
+
+// Map alokasi from Supabase
+function mapAlokasiFromSupabase(data) {
+  if (!Array.isArray(data)) return [];
+  return data.map(row => ({
+    id: row.id,
+    idsubsls: row.idsubsls,
+    pml: titleCase(row["PML"] || ''),
+    ppl: titleCase(row["PPL"] || ''),
+    email_pencacah: row["EMAIL PENCACAH"] || '',
+    email_pengawas: row["EMAIL PENGAWAS"] || '',
+    nmdes: getCleanDesa(row.nmdes),
+    nmsls: row.nmsls || '',
+    kddesa: row.kddesa || '',
+    kdsls: row.kdsls || '',
+    umkm: parseInt(row.umkm) || 0,
+    fasih: parseInt(row.fasih) || 0,
+    flag_perubahan: row["Flag Perubahan"] || false,
+    flag_sls_open: row["Flag SLS Open PBI"] || false,
+    kk_open: row["KK Open PBI"] || 0,
+    _original: row
+  }));
+}
+
+// Map progres from Supabase
+function mapProgresFromSupabase(data) {
+  if (!Array.isArray(data)) return [];
+  return data.map(row => ({
+    id: row.id,
+    petugas: row.email || '',
+    kode_sls: row.kdsls || '',
+    kode_desa: row.kddesa || '',
+    nama_sls: row.nmsls || '',
+    nama_usaha: row.nmusaha || '',
+    alamat: row.nmalamat || '',
+    jumlah_usaha: row.jmlusaha || '',
+    skala_usaha: row.skalausaha || '',
+    kode_identitas: row.kdidentitas || '',
+    keterangan: row.ket || '',
+    desa: getCleanDesa(row.nmdesa),
+    nib: row.nib || '',
+    mode: row.mode || '',
+    status: row.status || 'open',
+    _original: row
+  }));
+}
+
+// ===================================================
+// DESA NAME STANDARDIZATION
+// ===================================================
+
+const DESA_MAP = {
+  'dayeuhluhur': '001 Desa Dayeuhluhur',
+  'lemahkarya': '002 Desa Lemahkarya',
+  'lemahduhur': '003 Desa Lemahduhur',
+  'lemahsubur': '004 Desa Lemahsubur',
+  'lemahmakmur': '005 Desa Lemahmakmur',
+  'pagadungan': '006 Desa Pagadungan',
+  'purwajaya': '007 Desa Purwajaya',
+  'jayanegara': '008 Desa Jayanegara',
+  'tempuran': '009 Desa Tempuran',
+  'ciparagejaya': '010 Desa Ciparagejaya',
+  'cikuntul': '011 Desa Cikuntul',
+  'sumberjaya': '012 Desa Sumberjaya',
+  'pancakarya': '013 Desa Pancakarya',
+  'tanjungjaya': '014 Desa Tanjungjaya'
+};
+
+function getCleanDesa(name) {
+  if (!name) return '-';
+  const clean = name.toLowerCase().replace(/[^a-z]/g, '').trim();
+  for (const key in DESA_MAP) {
+    if (clean.includes(key) || key.includes(clean)) {
+      return DESA_MAP[key];
+    }
+  }
+  return name;
+}
+
+function titleCase(str) {
+  if (!str) return '';
+  return str.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ').trim();
+}
+
+// ===================================================
 // HELPER FUNCTIONS
 // ===================================================
 
@@ -40,6 +263,10 @@ async function supabaseGet(table, filters = '') {
         'Content-Type': 'application/json'
       }
     });
+    if (!res.ok) {
+      console.error(`Supabase GET error: ${res.status} ${res.statusText}`);
+      return null;
+    }
     return await res.json();
   } catch (e) {
     console.error('Supabase GET error:', e);
@@ -59,6 +286,10 @@ async function supabasePost(table, data) {
       },
       body: JSON.stringify(data)
     });
+    if (!res.ok) {
+      console.error(`Supabase POST error: ${res.status} ${res.statusText}`);
+      return null;
+    }
     return await res.json();
   } catch (e) {
     console.error('Supabase POST error:', e);
@@ -78,6 +309,10 @@ async function supabasePatch(table, data, filters) {
       },
       body: JSON.stringify(data)
     });
+    if (!res.ok) {
+      console.error(`Supabase PATCH error: ${res.status} ${res.statusText}`);
+      return null;
+    }
     return await res.json();
   } catch (e) {
     console.error('Supabase PATCH error:', e);
@@ -88,7 +323,7 @@ async function supabasePatch(table, data, filters) {
 async function supabaseUpsert(table, data, matchingKey) {
   try {
     // First try to update
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${matchingKey}=eq.${data[matchingKey]}`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${matchingKey}=eq.${encodeURIComponent(data[matchingKey])}`, {
       method: 'PATCH',
       headers: {
         'apikey': SUPABASE_KEY,
@@ -114,15 +349,30 @@ async function supabaseUpsert(table, data, matchingKey) {
           },
           body: JSON.stringify(data)
         });
+        if (!insertRes.ok) {
+          console.error(`Supabase UPSERT POST error: ${insertRes.status}`);
+          return null;
+        }
         return await insertRes.json();
       }
       return result;
     }
+    console.error(`Supabase UPSERT PATCH error: ${res.status}`);
     return null;
   } catch (e) {
     console.error('Supabase UPSERT error:', e);
     return null;
   }
+}
+
+// Batch upsert for multiple records
+async function supabaseUpsertBatch(table, dataArray, matchKey) {
+  const results = [];
+  for (const data of dataArray) {
+    const result = await supabaseUpsert(table, data, matchKey);
+    results.push(result);
+  }
+  return results.every(r => r !== null);
 }
 
 // ===================================================
@@ -141,13 +391,31 @@ async function getBiodataByEmail(email) {
   return await supabaseGet('biodata_petugas', `?email=eq.${encodeURIComponent(email)}&select=*`);
 }
 
+// Update phone number with proper formatting
 async function updateBiodataPhone(id, teleponBaru) {
   const teleponFormat = formatPhoneNumber(teleponBaru);
   return await supabasePatch('biodata_petugas', { nohp: teleponFormat }, `?id=eq.${id}`);
 }
 
+// Update biodata with field mapping
 async function updateBiodata(id, data) {
-  return await supabasePatch('biodata_petugas', data, `?id=eq.${id}`);
+  // Map frontend field names to Supabase column names
+  const supabaseData = {};
+
+  if (data.nama !== undefined) supabaseData.nm_lengkap = data.nama;
+  if (data.no_telp !== undefined) supabaseData.nohp = formatPhoneNumber(data.no_telp);
+  if (data.posisi !== undefined) supabaseData.jabatan = data.posisi;
+  if (data.email !== undefined) supabaseData.email = data.email;
+  if (data.alamat !== undefined) supabaseData.alamat = data.alamat;
+  if (data.alamat_desa !== undefined) supabaseData.nmdesa = data.alamat_desa;
+  if (data.ttl !== undefined) supabaseData.ttl = data.ttl;
+  if (data.umur !== undefined) supabaseData.umur = data.umur;
+  if (data.jenis_kelamin !== undefined) supabaseData.kelamin = data.jenis_kelamin;
+  if (data.pendidikan !== undefined) supabaseData.pendidikan = data.pendidikan;
+  if (data.pekerjaan !== undefined) supabaseData.pekerjaan = data.pekerjaan;
+  if (data.sobat_id !== undefined) supabaseData.sobad_id = data.sobat_id;
+
+  return await supabasePatch('biodata_petugas', supabaseData, `?id=eq.${id}`);
 }
 
 // ===================================================
@@ -227,12 +495,12 @@ function downloadBiodataCSV(data) {
   const headers = ['No', 'Nama', 'Email', 'Jabatan', 'Telepon', 'Alamat', 'Desa'];
   const rows = data.map((item, index) => [
     index + 1,
-    item.nm_lengkap || '-',
+    item.nama || '-',
     item.email || '-',
-    item.jabatan || '-',
-    formatPhoneNumber(item.nohp),
+    item.posisi || '-',
+    formatPhoneNumber(item.no_telp),
     item.alamat || '-',
-    item.nmdesa || '-'
+    item.alamat_desa || '-'
   ]);
 
   let csv = headers.join(',') + '\n';
@@ -252,12 +520,12 @@ function downloadBiodataTXT(data) {
   txt += '='.repeat(50) + '\n\n';
 
   data.forEach((item, index) => {
-    txt += `${index + 1}. ${item.nm_lengkap || '-' }\n`;
+    txt += `${index + 1}. ${item.nama || '-' }\n`;
     txt += `   Email   : ${item.email || '-'}\n`;
-    txt += `   Jabatan : ${item.jabatan || '-'}\n`;
-    txt += `   Telepon : ${formatPhoneNumber(item.nohp)}\n`;
+    txt += `   Jabatan : ${item.posisi || '-'}\n`;
+    txt += `   Telepon : ${formatPhoneNumber(item.no_telp)}\n`;
     txt += `   Alamat  : ${item.alamat || '-'}\n`;
-    txt += `   Desa    : ${item.nmdesa || '-'}\n`;
+    txt += `   Desa    : ${item.alamat_desa || '-'}\n`;
     txt += '-'.repeat(30) + '\n\n';
   });
 
@@ -268,8 +536,24 @@ function downloadBiodataTXT(data) {
   link.click();
 }
 
-// Export supabase functions globally
+// ===================================================
+// EXPORT ALL FUNCTIONS GLOBALLY
+// ===================================================
+
 window.supabase = {
+  // Config
+  SUPABASE_URL,
+  SUPABASE_KEY,
+
+  // Mappers
+  mapBiodataFromSupabase,
+  mapBiodataToSupabase,
+  mapAlokasiFromSupabase,
+  mapProgresFromSupabase,
+  getCleanDesa,
+  titleCase,
+
+  // API
   getAllBiodata,
   getBiodataById,
   getBiodataByEmail,
@@ -279,10 +563,18 @@ window.supabase = {
   getAlokasiByEmail,
   getAllProgres,
   getProgresByPetugas,
+
+  // Active SLS
   setActiveSLS,
   getAllActiveSLS,
   removeActiveSLS,
+
+  // Download
   downloadBiodataCSV,
   downloadBiodataTXT,
-  formatPhoneNumber
+
+  // Utils
+  formatPhoneNumber,
+  supabaseGet,
+  supabaseUpsertBatch
 };

@@ -57,9 +57,12 @@ async function loadAllData() {
       supabase.getAllAlokasi(),
       supabase.getAllProgres()
     ]);
-    AppData.biodata = bio || [];
-    AppData.alokasi = alok || [];
-    AppData.progres = prog || [];
+
+    // Use unified field mapping from supabase.js
+    AppData.biodata = bio ? supabase.mapBiodataFromSupabase(bio) : [];
+    AppData.alokasi = alok ? supabase.mapAlokasiFromSupabase(alok) : [];
+    AppData.progres = prog ? supabase.mapProgresFromSupabase(prog) : [];
+
   } catch(e) {
     console.warn('Supabase fetch failed:', e);
     AppData.biodata = [];
@@ -67,86 +70,13 @@ async function loadAllData() {
     AppData.progres = [];
   }
 
-  // Standardization helpers
-  const DESA_MAP = {
-    'dayeuhluhur': '001 Desa Dayeuhluhur',
-    'lemahkarya': '002 Desa Lemahkarya',
-    'lemahduhur': '003 Desa Lemahduhur',
-    'lemahsubur': '004 Desa Lemahsubur',
-    'lemahmakmur': '005 Desa Lemahmakmur',
-    'pagadungan': '006 Desa Pagadungan',
-    'purwajaya': '007 Desa Purwajaya',
-    'jayanegara': '008 Desa Jayanegara',
-    'tempuran': '009 Desa Tempuran',
-    'ciparagejaya': '010 Desa Ciparagejaya',
-    'cikuntul': '011 Desa Cikuntul',
-    'sumberjaya': '012 Desa Sumberjaya',
-    'pancakarya': '013 Desa Pancakarya',
-    'tanjungjaya': '014 Desa Tanjungjaya'
-  };
-
-  const getCleanDesa = (name) => {
-    if (!name) return '-';
-    const clean = name.toLowerCase().replace(/[^a-z]/g, '').trim();
-    for (const key in DESA_MAP) {
-      if (clean.includes(key) || key.includes(clean)) {
-        return DESA_MAP[key];
-      }
-    }
-    return name;
-  };
-
-  const titleCase = (str) => {
-    if (!str) return '';
-    return str.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ').trim();
-  };
-
-  // Expose helpers globally so other parts can use them if needed
-  window.getCleanDesa = getCleanDesa;
-  window.titleCase = titleCase;
-
-  // Format all PML/PPL names and villages
-  AppData.biodata.forEach(p => {
-    // Map biodata_petugas columns to internal fields
-    p.nama = titleCase(p.nm_lengkap);
-    p.posisi = p.jabatan;
-    p.no_telp = p.nohp;
-    p.jenis_kelamin = p.kelamin;
-    p.alamat_desa = getCleanDesa(p.nmdesa);
-    p.sobat_id = p.sobad_id;
-    p.merk_hp = p.merk_hp || '';
-    p.tipe_hp = p.tipe_hp || '';
-  });
-  AppData.alokasi.forEach(a => {
-    // Map alokasi_petugas columns to internal fields
-    a.pml = titleCase(a["PML"]);
-    a.ppl = titleCase(a["PPL"]);
-    a.email_pencacah = a["EMAIL PENCACAH"];
-    a.email_pengawas = a["EMAIL PENGAWAS"];
-    a.nmdes = getCleanDesa(a.nmdes);
-    a.flag_perubahan = a["Flag Perubahan"];
-    a.flag_sls_open = a["Flag SLS Open PBI"];
-    a.kk_open = a["KK Open PBI"];
-  });
-  AppData.progres.forEach(pr => {
-    // Map progres_lapangan columns to internal fields
-    pr.desa = getCleanDesa(pr.nmdesa);
-    pr.petugas = pr.email;
-    pr.kode_sls = pr.kdsls;
-    pr.kode_desa = pr.kddesa;
-    pr.nama_sls = pr.nmsls;
-    pr.nama_usaha = pr.nmusaha;
-    pr.alamat = pr.nmalamat;
-    pr.jumlah_usaha = pr.jmlusaha;
-    pr.skala_usaha = pr.skalausaha;
-    pr.kode_identitas = pr.kdidentitas;
-    pr.keterangan = pr.ket;
-  });
-
   // Build relasi: attach PPL email from alokasi to biodata
   AppData.biodata.forEach(p => {
     const email = p.email?.toLowerCase();
-    const alok_rows = AppData.alokasi.filter(a => a.email_pencacah?.toLowerCase() === email || a.email_pengawas?.toLowerCase() === email);
+    const alok_rows = AppData.alokasi.filter(a =>
+      a.email_pencacah?.toLowerCase() === email ||
+      a.email_pengawas?.toLowerCase() === email
+    );
     p._alokasi = alok_rows;
     const prog_rows = AppData.progres.filter(pr => {
       const pe = pr.petugas?.toLowerCase() || '';
@@ -1702,7 +1632,7 @@ function renderProfil() {
 
           <div>
             <label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px">Desa/Kelurahan</label>
-            <input type="text" id="profilDesa" class="search-input" value="${myData.desa || ''}" placeholder="Desa/Kelurahan" />
+            <input type="text" id="profilDesa" class="search-input" value="${myData.alamat_desa || ''}" placeholder="Desa/Kelurahan" />
           </div>
         </div>
 
@@ -1737,28 +1667,36 @@ async function saveProfil(id) {
   }
 
   try {
+    // Map to Supabase field names using unified function
     const data = {
       nama: nama,
-      no_telp: supabase.formatPhoneNumber(telepon),
+      no_telp: telepon,
       alamat: alamat,
-      desa: desa
+      alamat_desa: desa
     };
 
+    // Use supabase.js unified update function
     const result = await supabase.updateBiodata(id, data);
 
     if (result) {
-      // Update local data
+      // Update local data with mapped fields
       const idx = AppData.biodata.findIndex(b => b.id === id);
       if (idx !== -1) {
-        AppData.biodata[idx] = { ...AppData.biodata[idx], ...data };
+        AppData.biodata[idx].nama = nama;
+        AppData.biodata[idx].no_telp = telepon;
+        AppData.biodata[idx].alamat = alamat;
+        AppData.biodata[idx].alamat_desa = desa;
       }
 
-      // Update session
+      // Update session with name only
       const userData = JSON.parse(sessionStorage.getItem('SIMON-SE26TEMPURAN-user') || '{}');
       if (userData) {
         userData.name = nama;
         sessionStorage.setItem('SIMON-SE26TEMPURAN-user', JSON.stringify(userData));
-        localStorage.setItem('SIMON-SE26TEMPURAN-user', JSON.stringify(userData));
+        // Only update localStorage if remember me was checked
+        if (localStorage.getItem('SIMON-SE26TEMPURAN-user')) {
+          localStorage.setItem('SIMON-SE26TEMPURAN-user', JSON.stringify(userData));
+        }
       }
 
       // Update UI
@@ -1861,8 +1799,29 @@ function closeSidebar() {
 document.getElementById('sidebarClose')?.addEventListener('click', closeSidebar);
 
 function handleLogout() {
+  // Clear user session (sessionStorage)
   sessionStorage.removeItem('SIMON-SE26TEMPURAN-user');
+
+  // Clear localStorage (if remember me was used)
   localStorage.removeItem('SIMON-SE26TEMPURAN-user');
+
+  // Clear app caches (IMPORTANT for sync)
+  localStorage.removeItem('SIMON-SE26TEMPURAN-biodata-cache');
+  localStorage.removeItem('SIMON-SE26TEMPURAN-theme');
+
+  // Clear any active SLS tracking
+  const userData = JSON.parse(sessionStorage.getItem('SIMON-SE26TEMPURAN-user') || '{}');
+  if (userData.email) {
+    localStorage.removeItem(`active-sls-${userData.email.toLowerCase()}`);
+    localStorage.removeItem(`active-sls-${userData.email.toLowerCase()}_updated`);
+  }
+
+  // Clear in-memory caches
+  if (typeof window.clearCache === 'function') {
+    window.clearCache();
+  }
+
+  // Redirect to landing
   window.location.href = 'index.html';
 }
 
@@ -2324,17 +2283,42 @@ function deleteUser(emailOrNama) {
 async function saveUsersToDatabase() {
   showToast('[*] Menyimpan data user ke Supabase...', 'info');
   try {
-    const cleanBio = AppData.biodata.map(u => {
-      const copy = { ...u };
-      delete copy._alokasi;
-      delete copy._progres_count;
-      delete copy._progres_done;
-      delete copy._ppls;
-      return copy;
-    });
+    // Clean and map data to Supabase format
+    const cleanBio = AppData.biodata
+      .filter(u => u.email) // Only save users with email
+      .map(u => {
+        // Map frontend fields to Supabase fields
+        return {
+          nm_lengkap: u.nama,
+          email: u.email,
+          jabatan: u.posisi,
+          nohp: supabase.formatPhoneNumber(u.no_telp),
+          alamat: u.alamat,
+          nmdesa: u.alamat_desa,
+          ttl: u.ttl,
+          umur: u.umur,
+          kelamin: u.jenis_kelamin,
+          pendidikan: u.pendidikan,
+          pekerjaan: u.pekerjaan,
+          sobad_id: u.sobad_id,
+          merk_hp: u.merk_hp,
+          tipe_hp: u.tipe_hp,
+          punya_hp_android: u.punya_hp_android,
+          punya_kendaraan: u.punya_kendaraan,
+          bisa_motor: u.bisa_motor,
+          berpengalaman_capi: u.berpengalaman_capi,
+          pernah_se: u.pernah_se,
+          status_nik: u.status_nik,
+        };
+      });
 
-    // Batch upsert to Supabase
-    const result = await supabaseUpsertBatch('biodata', cleanBio, 'email');
+    if (cleanBio.length === 0) {
+      showToast('⚠ Tidak ada data user untuk disimpan', 'error');
+      return;
+    }
+
+    // Batch upsert to Supabase using unified function from supabase.js
+    const result = await supabase.supabaseUpsertBatch('biodata_petugas', cleanBio, 'email');
 
     if (result) {
       showToast('✓ Seluruh data user berhasil disimpan ke Supabase!', 'success');
@@ -2345,15 +2329,6 @@ async function saveUsersToDatabase() {
   } catch(e) {
     showToast(`⚠ Error: ${e.message}`, 'error');
   }
-}
-
-async function supabaseUpsertBatch(table, data, matchKey) {
-  let success = true;
-  for (const item of data) {
-    const result = await supabase.supabaseUpsert(table, item, matchKey);
-    if (!result) success = false;
-  }
-  return success;
 }
 
 // ====================================================
