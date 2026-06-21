@@ -605,63 +605,24 @@ function renderDashboard() {
       </div>
     </div>
 
-    <!-- ROW: Progress Chart + Status Donut -->
-    <div class="grid-2" style="margin-bottom:20px">
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Progress per Desa</div>
-            <div class="card-sub">Persentase listing diproses vs total</div>
-          </div>
-        </div>
-        <div class="desa-progress-list" id="desaProgressList"></div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Status Pendataan</div>
-            <div class="card-sub">Distribusi status seluruh listing</div>
-          </div>
-        </div>
-        <div class="donut-wrap">
-          <svg viewBox="0 0 120 120" width="120" height="120" style="flex-shrink:0">
-            ${buildDonut([
-              { val: open, color: '#64748b' },
-              { val: submitted, color: '#f59e0b' },
-              { val: draft, color: '#6366f1' },
-              { val: approved, color: '#10b981' },
-              { val: rejected, color: '#ef4444' },
-              { val: revoked, color: '#8b5cf6' },
-            ], total)}
-          </svg>
-          <div class="donut-legend">
-            ${[
-              {label:'Open', val:open, color:'#64748b'},
-              {label:'Submitted', val:submitted, color:'#f59e0b'},
-              {label:'Draft', val:draft, color:'#6366f1'},
-              {label:'Approved', val:approved, color:'#10b981'},
-              {label:'Rejected', val:rejected, color:'#ef4444'},
-              {label:'Revoked', val:revoked, color:'#8b5cf6'},
-            ].map(l => `
-              <div class="legend-item">
-                <span class="legend-dot" style="background:${l.color}"></span>
-                <span>${l.label}</span>
-                <span class="legend-val">${l.val.toLocaleString('id-ID')}</span>
-              </div>
-            `).join('')}
-          </div>
+    <!-- ROW: Progress per Desa (full width) -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header">
+        <div>
+          <div class="card-title">📍 Progress per Desa</div>
+          <div class="card-sub">Persentase listing diproses vs total per desa</div>
         </div>
       </div>
+      <div class="desa-progress-list" id="desaProgressList"></div>
     </div>
 
-    <!-- ROW: SLS Statistics by Status (Admin only) -->
+    <!-- ROW: SLS Statistics by Status (Admin only) - FULL WIDTH -->
     ${CurrentUser?.role === 'admin' ? `
     <div class="card" style="margin-bottom:20px">
       <div class="card-header">
         <div>
-          <div class="card-title">📊 Statistik SLS per Status</div>
-          <div class="card-sub">Rincian status listing per SLS untuk seluruh wilayah</div>
+          <div class="card-title">📊 Statistik SLS - Target vs Actual</div>
+          <div class="card-sub">Rincian UMKM & FASIH target vs pencapaian per SLS</div>
         </div>
         <button class="btn-sm btn-ghost-sm" onclick="navigateTo('alokasi')">Filter SLS →</button>
       </div>
@@ -674,45 +635,86 @@ function renderDashboard() {
     </div>
     ` : ''}
 
-    <!-- ROW: PML Summary Table (Admin only - not for PPL or PML) -->
+    <!-- ROW: PML Summary + Recent Activity (Admin only) -->
     ${CurrentUser?.role === 'admin' ? `
-    <div class="card" style="margin-bottom:20px">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Rekapitulasi per PML</div>
-          <div class="card-sub">Beban tugas 6 Pemeriksa Lapangan Sensus</div>
+    <div class="grid-2" style="margin-bottom:20px">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">👥 Rekapitulasi per PML</div>
+            <div class="card-sub">Beban tugas 6 Pemeriksa Lapangan</div>
+          </div>
+          <button class="btn-sm btn-ghost-sm" onclick="navigateTo('alokasi')">Detail →</button>
         </div>
-        <button class="btn-sm btn-ghost-sm" onclick="navigateTo('alokasi')">Lihat Detail →</button>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>#</th><th>Nama PML</th><th>PPL</th><th>SLS</th><th>UMKM</th><th>FASIH</th>
+            </tr></thead>
+            <tbody id="pmlSummaryBody"></tbody>
+          </table>
+        </div>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr>
-            <th>#</th><th>Nama PML</th><th>Jumlah PPL</th><th>Total SLS</th><th>Total UMKM</th><th>Total FASIH</th><th>Aksi</th>
-          </tr></thead>
-          <tbody id="pmlSummaryBody"></tbody>
-        </table>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">📋 Aktivitas Terbaru</div>
+            <div class="card-sub">Listing yang baru diproses</div>
+          </div>
+          <button class="btn-sm btn-ghost-sm" onclick="navigateTo('progres')">Semua →</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Desa</th><th>SLS</th><th>Nama</th><th>Skala</th><th>Status</th>
+            </tr></thead>
+            <tbody id="recentBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
     ` : ''}
 
-    <!-- ROW: Recent Activity -->
-    <div class="card">
+    <!-- ROW: Status Pendataan (Donut - Admin only) -->
+    ${CurrentUser?.role === 'admin' ? `
+    <div class="card" style="margin-bottom:20px">
       <div class="card-header">
         <div>
-          <div class="card-title">Aktivitas Terbaru</div>
-          <div class="card-sub">Listing yang sudah diproses</div>
+          <div class="card-title">📈 Distribusi Status Pendataan</div>
+          <div class="card-sub">Breakdown seluruh listing berdasarkan status</div>
         </div>
-        <button class="btn-sm btn-ghost-sm" onclick="navigateTo('progres')">Lihat Semua →</button>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr>
-            <th>Desa</th><th>SLS</th><th>Nama</th><th>Skala</th><th>Status</th><th>Petugas</th>
-          </tr></thead>
-          <tbody id="recentBody"></tbody>
-        </table>
+      <div class="donut-wrap">
+        <svg viewBox="0 0 120 120" width="120" height="120" style="flex-shrink:0">
+          ${buildDonut([
+            { val: open, color: '#64748b' },
+            { val: submitted, color: '#f59e0b' },
+            { val: draft, color: '#6366f1' },
+            { val: approved, color: '#10b981' },
+            { val: rejected, color: '#ef4444' },
+            { val: revoked, color: '#8b5cf6' },
+          ], total)}
+        </svg>
+        <div class="donut-legend">
+          ${[
+            {label:'Open', val:open, color:'#64748b'},
+            {label:'Submitted', val:submitted, color:'#f59e0b'},
+            {label:'Draft', val:draft, color:'#6366f1'},
+            {label:'Approved', val:approved, color:'#10b981'},
+            {label:'Rejected', val:rejected, color:'#ef4444'},
+            {label:'Revoked', val:revoked, color:'#8b5cf6'},
+          ].map(l => `
+            <div class="legend-item">
+              <span class="legend-dot" style="background:${l.color}"></span>
+              <span>${l.label}</span>
+              <span class="legend-val">${l.val.toLocaleString('id-ID')}</span>
+            </div>
+          `).join('')}
+        </div>
       </div>
     </div>
+    ` : ''}
   `;
 
   // Animate counters
