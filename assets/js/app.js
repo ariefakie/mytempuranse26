@@ -812,8 +812,8 @@ function renderSLSStats() {
         pml: a.pml,
         ppl: a.ppl,
         email_pencacah: a.email_pencacah,
-        umkm: a.umkm || 0,
-        fasih: a.fasih || 0,
+        umkm_target: a.umkm || 0,
+        fasih_target: a.fasih || 0,
         // Status counters
         total: 0,
         open: 0,
@@ -821,35 +821,57 @@ function renderSLSStats() {
         submitted: 0,
         approved: 0,
         rejected: 0,
-        revoked: 0
+        revoked: 0,
+        // Actual count from progres
+        umkm_actual: 0,
+        fasih_actual: 0
       };
     }
   });
 
-  // Match progres to SLS
+  // Match progres to SLS and count UMK/UMKM/FASIH
   AppData.progres.forEach(pr => {
     const key = `${pr.kode_desa}-${pr.kode_sls}`;
     if (slsMap[key]) {
       const sls = slsMap[key];
       sls.total++;
       const status = pr.status?.toLowerCase() || '';
+      const skala = pr.skala_usaha?.toLowerCase() || '';
+
+      // Count UMK/UMKM vs FASIH
+      if (skala.includes('umk') || skala.includes('um')) {
+        sls.umkm_actual++;
+      } else if (skala.includes('fasih') || skala.includes('keluarga')) {
+        sls.fasih_actual++;
+      } else {
+        // Default: check if it's not keluarga
+        if (!skala.includes('keluarga')) {
+          sls.umkm_actual++;
+        } else {
+          sls.fasih_actual++;
+        }
+      }
+
+      // Status counting
       if (status === 'open') sls.open++;
       else if (status === 'draft') sls.draft++;
       else if (status === 'submitted by pencacah') sls.submitted++;
       else if (status === 'approved by pengawas') sls.approved++;
       else if (status === 'rejected by pengawas') sls.rejected++;
       else if (status === 'revoked by pengawas') sls.revoked++;
-      else sls.open++; // Default to open
+      else sls.open++;
     }
   });
 
   // Convert to array and sort by progress percentage
   const slsList = Object.values(slsMap)
-    .filter(s => s.total > 0) // Only show SLS with data
+    .filter(s => s.total > 0)
     .map(s => ({
       ...s,
       selesai: s.total - s.open,
-      pct: s.total > 0 ? ((s.selesai / s.total) * 100).toFixed(1) : 0
+      pct: s.total > 0 ? ((s.selesai / s.total) * 100).toFixed(1) : 0,
+      umkm_pct: s.umkm_target > 0 ? Math.min(100, Math.round((s.umkm_actual / s.umkm_target) * 100)) : 0,
+      fasih_pct: s.fasih_target > 0 ? Math.min(100, Math.round((s.fasih_actual / s.fasih_target) * 100)) : 0
     }))
     .sort((a, b) => parseFloat(b.pct) - parseFloat(a.pct));
 
@@ -862,16 +884,6 @@ function renderSLSStats() {
     return;
   }
 
-  // Status colors
-  const statusColors = {
-    open: '#64748b',
-    draft: '#6366f1',
-    submitted: '#f59e0b',
-    approved: '#10b981',
-    rejected: '#ef4444',
-    revoked: '#8b5cf6'
-  };
-
   // Render table
   container.innerHTML = `
     <table style="width:100%;border-collapse:collapse;font-size:13px">
@@ -879,27 +891,38 @@ function renderSLSStats() {
         <tr style="background:var(--bg-2);border-bottom:1px solid var(--border)">
           <th style="padding:12px 8px;text-align:left">SLS</th>
           <th style="padding:12px 8px;text-align:center">PPL</th>
-          <th style="padding:12px 8px;text-align:center;min-width:80px">Total</th>
+          <th style="padding:12px 8px;text-align:center;min-width:70px">UMKM<br/><span style="font-weight:400;font-size:10px">Target vs Actual</span></th>
+          <th style="padding:12px 8px;text-align:center;min-width:70px">FASIH<br/><span style="font-weight:400;font-size:10px">Target vs Actual</span></th>
           <th style="padding:12px 8px;text-align:center;min-width:60px">Open</th>
           <th style="padding:12px 8px;text-align:center;min-width:60px">Draft</th>
-          <th style="padding:12px 8px;text-align:center;min-width:80px">Submit</th>
+          <th style="padding:12px 8px;text-align:center;min-width:70px">Submit</th>
           <th style="padding:12px 8px;text-align:center;min-width:70px">Approve</th>
-          <th style="padding:12px 8px;text-align:center;min-width:70px">Reject</th>
-          <th style="padding:12px 8px;text-align:center;min-width:60px">Revoke</th>
-          <th style="padding:12px 8px;text-align:center;min-width:100px">Progress</th>
+          <th style="padding:12px 8px;text-align:center;min-width:60px">Reject</th>
+          <th style="padding:12px 8px;text-align:center;min-width:90px">Progress</th>
         </tr>
       </thead>
       <tbody>
         ${slsList.slice(0, 50).map((sls, i) => `
           <tr style="border-bottom:1px solid var(--border);cursor:pointer" onclick="showSLSDetailByKey('${sls.idsubsls}')">
             <td style="padding:10px 8px">
-              <div style="font-weight:600;color:var(--text)">${sls.nmsls?.substring(0, 25) || '-'}</div>
-              <div style="font-size:11px;color:var(--text-dim)">${sls.nmdes} · ${sls.idsubsls}</div>
+              <div style="font-weight:600;color:var(--text)">${sls.nmsls?.substring(0, 20) || '-'}</div>
+              <div style="font-size:10px;color:var(--text-dim)">${sls.nmdes}</div>
             </td>
             <td style="padding:10px 8px;text-align:center">
               <span class="badge badge-info" style="font-size:10px">${sls.ppl?.split(' ')[0] || '-'}</span>
             </td>
-            <td style="padding:10px 8px;text-align:center;font-weight:700">${sls.total.toLocaleString('id-ID')}</td>
+            <td style="padding:10px 8px;text-align:center">
+              <div style="font-weight:700;color:${sls.umkm_pct >= 100 ? '#10b981' : sls.umkm_pct >= 50 ? '#f59e0b' : '#ef4444'}">
+                ${sls.umkm_actual}/${sls.umkm_target}
+              </div>
+              <div style="font-size:10px;color:var(--text-dim)">${sls.umkm_pct}%</div>
+            </td>
+            <td style="padding:10px 8px;text-align:center">
+              <div style="font-weight:700;color:${sls.fasih_pct >= 100 ? '#10b981' : sls.fasih_pct >= 50 ? '#f59e0b' : '#ef4444'}">
+                ${sls.fasih_actual}/${sls.fasih_target}
+              </div>
+              <div style="font-size:10px;color:var(--text-dim)">${sls.fasih_pct}%</div>
+            </td>
             <td style="padding:10px 8px;text-align:center">
               <span style="color:${statusColors.open};font-weight:600">${sls.open.toLocaleString('id-ID')}</span>
             </td>
@@ -915,15 +938,12 @@ function renderSLSStats() {
             <td style="padding:10px 8px;text-align:center">
               <span style="color:${statusColors.rejected};font-weight:600">${sls.rejected.toLocaleString('id-ID')}</span>
             </td>
-            <td style="padding:10px 8px;text-align:center">
-              <span style="color:${statusColors.revoked};font-weight:600">${sls.revoked.toLocaleString('id-ID')}</span>
-            </td>
-            <td style="padding:10px 8px;text-align:center;min-width:100px">
-              <div style="display:flex;align-items:center;gap:8px">
+            <td style="padding:10px 8px;text-align:center;min-width:90px">
+              <div style="display:flex;align-items:center;gap:6px">
                 <div style="flex:1;height:6px;background:var(--bg-2);border-radius:3px;overflow:hidden">
-                  <div style="width:${sls.pct}%;height:100%;background:${parseFloat(sls.pct) > 50 ? '#10b981' : '#f59e0b'};border-radius:3px"></div>
+                  <div style="width:${sls.pct}%;height:100%;background:${parseFloat(sls.pct) >= 100 ? '#10b981' : parseFloat(sls.pct) >= 50 ? '#f59e0b' : '#ef4444'};border-radius:3px"></div>
                 </div>
-                <span style="font-size:11px;font-weight:700;min-width:40px">${sls.pct}%</span>
+                <span style="font-size:11px;font-weight:700;min-width:35px">${sls.pct}%</span>
               </div>
             </td>
           </tr>
@@ -952,9 +972,17 @@ window.showSLSDetailByKey = function(idsubsls) {
     String(r.kode_desa).trim() === String(alokasi.kddesa).trim()
   );
 
+  // Count status
   const statusCount = { open: 0, draft: 0, submitted: 0, approved: 0, rejected: 0, revoked: 0 };
+  // Count UMK/UMKM vs FASIH
+  let umkm_actual = 0;
+  let fasih_actual = 0;
+
   slsProg.forEach(pr => {
     const s = pr.status?.toLowerCase() || '';
+    const skala = pr.skala_usaha?.toLowerCase() || '';
+
+    // Status counting
     if (s === 'open') statusCount.open++;
     else if (s === 'draft') statusCount.draft++;
     else if (s === 'submitted by pencacah') statusCount.submitted++;
@@ -962,11 +990,23 @@ window.showSLSDetailByKey = function(idsubsls) {
     else if (s === 'rejected by pengawas') statusCount.rejected++;
     else if (s === 'revoked by pengawas') statusCount.revoked++;
     else statusCount.open++;
+
+    // UMK/UMKM vs FASIH counting
+    if (skala.includes('keluarga')) {
+      fasih_actual++;
+    } else {
+      umkm_actual++;
+    }
   });
 
   const total = slsProg.length;
   const selesai = total - statusCount.open;
   const pct = total > 0 ? ((selesai / total) * 100).toFixed(1) : 0;
+
+  const umkm_target = alokasi.umkm || 0;
+  const fasih_target = alokasi.fasih || 0;
+  const umkm_pct = umkm_target > 0 ? Math.min(100, Math.round((umkm_actual / umkm_target) * 100)) : 0;
+  const fasih_pct = fasih_target > 0 ? Math.min(100, Math.round((fasih_actual / fasih_target) * 100)) : 0;
 
   openModal(`
     <div class="modal-title">Detail SLS: ${alokasi.nmsls}</div>
@@ -974,20 +1014,44 @@ window.showSLSDetailByKey = function(idsubsls) {
       <div class="modal-section-title">Informasi SLS</div>
       ${modalRow('ID SLS', alokasi.idsubsls)}
       ${modalRow('Desa', alokasi.nmdes)}
-      ${modalRow('Nama SLS', alokasi.nmsls)}
       ${modalRow('PML', alokasi.pml)}
       ${modalRow('PPL', alokasi.ppl)}
-      ${modalRow('UMKM Target', alokasi.umkm)}
-      ${modalRow('FASIH Target', alokasi.fasih)}
     </div>
+
     <div class="modal-section">
-      <div class="modal-section-title">Progres Pendataan</div>
+      <div class="modal-section-title">📊 Target vs Actual</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="padding:16px;background:rgba(245,158,11,0.1);border-radius:12px;border:1px solid rgba(245,158,11,0.2)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-weight:700;color:#f59e0b">🟡 UMKM</span>
+            <span style="font-size:18px;font-weight:700">${umkm_actual}/${umkm_target}</span>
+          </div>
+          <div class="progress-track" style="height:8px">
+            <div class="progress-fill" style="width:${umkm_pct}%;background:${umkm_pct >= 100 ? '#10b981' : umkm_pct >= 50 ? '#f59e0b' : '#ef4444'}"></div>
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px">${umkm_pct}% dari target</div>
+        </div>
+        <div style="padding:16px;background:rgba(16,185,129,0.1);border-radius:12px;border:1px solid rgba(16,185,129,0.2)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-weight:700;color:#10b981">🟢 FASIH</span>
+            <span style="font-size:18px;font-weight:700">${fasih_actual}/${fasih_target}</span>
+          </div>
+          <div class="progress-track" style="height:8px">
+            <div class="progress-fill" style="width:${fasih_pct}%;background:${fasih_pct >= 100 ? '#10b981' : fasih_pct >= 50 ? '#f59e0b' : '#ef4444'}"></div>
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px">${fasih_pct}% dari target</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">📋 Status Pendataan</div>
       ${modalRow('Total Listing', total.toLocaleString('id-ID'))}
       ${modalRow('Selesai Diproses', `${selesai.toLocaleString('id-ID')} (${pct}%)`)}
       ${modalRow('Belum Diproses', statusCount.open.toLocaleString('id-ID'))}
       <div style="margin-top:12px">
         <div class="progress-track" style="height:8px">
-          <div class="progress-fill" style="width:${pct}%;background:${parseFloat(pct) > 50 ? '#10b981' : '#f59e0b'}"></div>
+          <div class="progress-fill" style="width:${pct}%;background:${parseFloat(pct) >= 100 ? '#10b981' : parseFloat(pct) >= 50 ? '#f59e0b' : '#ef4444'}"></div>
         </div>
       </div>
     </div>
