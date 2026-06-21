@@ -57,18 +57,91 @@ async function loadAllData() {
       supabase.getAllAlokasi(),
       supabase.getAllProgres()
     ]);
-
-    // Use unified field mapping from supabase.js
-    AppData.biodata = bio ? supabase.mapBiodataFromSupabase(bio) : [];
-    AppData.alokasi = alok ? supabase.mapAlokasiFromSupabase(alok) : [];
-    AppData.progres = prog ? supabase.mapProgresFromSupabase(prog) : [];
-
+    AppData.biodata = bio || [];
+    AppData.alokasi = alok || [];
+    AppData.progres = prog || [];
   } catch(e) {
     console.warn('Supabase fetch failed:', e);
     AppData.biodata = [];
     AppData.alokasi = [];
     AppData.progres = [];
   }
+
+  // Standardization helpers
+  const DESA_MAP = {
+    'dayeuhluhur': '001 Desa Dayeuhluhur',
+    'lemahkarya': '002 Desa Lemahkarya',
+    'lemahduhur': '003 Desa Lemahduhur',
+    'lemahsubur': '004 Desa Lemahsubur',
+    'lemahmakmur': '005 Desa Lemahmakmur',
+    'pagadungan': '006 Desa Pagadungan',
+    'purwajaya': '007 Desa Purwajaya',
+    'jayanegara': '008 Desa Jayanegara',
+    'tempuran': '009 Desa Tempuran',
+    'ciparagejaya': '010 Desa Ciparagejaya',
+    'cikuntul': '011 Desa Cikuntul',
+    'sumberjaya': '012 Desa Sumberjaya',
+    'pancakarya': '013 Desa Pancakarya',
+    'tanjungjaya': '014 Desa Tanjungjaya'
+  };
+
+  const getCleanDesa = (name) => {
+    if (!name) return '-';
+    const clean = name.toLowerCase().replace(/[^a-z]/g, '').trim();
+    for (const key in DESA_MAP) {
+      if (clean.includes(key) || key.includes(clean)) {
+        return DESA_MAP[key];
+      }
+    }
+    return name;
+  };
+
+  const titleCase = (str) => {
+    if (!str) return '';
+    return str.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ').trim();
+  };
+
+  // Expose helpers globally so other parts can use them if needed
+  window.getCleanDesa = getCleanDesa;
+  window.titleCase = titleCase;
+
+  // Format all PML/PPL names and villages
+  AppData.biodata.forEach(p => {
+    // Map biodata_petugas columns to internal fields
+    p.nama = titleCase(p.nm_lengkap);
+    p.posisi = p.jabatan;
+    p.no_telp = p.nohp;
+    p.jenis_kelamin = p.kelamin;
+    p.alamat_desa = getCleanDesa(p.nmdesa);
+    p.sobat_id = p.sobad_id;
+    p.merk_hp = p.merk_hp || '';
+    p.tipe_hp = p.tipe_hp || '';
+  });
+  AppData.alokasi.forEach(a => {
+    // Map alokasi_petugas columns to internal fields
+    a.pml = titleCase(a["PML"]);
+    a.ppl = titleCase(a["PPL"]);
+    a.email_pencacah = a["EMAIL PENCACAH"];
+    a.email_pengawas = a["EMAIL PENGAWAS"];
+    a.nmdes = getCleanDesa(a.nmdes);
+    a.flag_perubahan = a["Flag Perubahan"];
+    a.flag_sls_open = a["Flag SLS Open PBI"];
+    a.kk_open = a["KK Open PBI"];
+  });
+  AppData.progres.forEach(pr => {
+    // Map progres_lapangan columns to internal fields
+    pr.desa = getCleanDesa(pr.nmdesa);
+    pr.petugas = pr.email;
+    pr.kode_sls = pr.kdsls;
+    pr.kode_desa = pr.kddesa;
+    pr.nama_sls = pr.nmsls;
+    pr.nama_usaha = pr.nmusaha;
+    pr.alamat = pr.nmalamat;
+    pr.jumlah_usaha = pr.jmlusaha;
+    pr.skala_usaha = pr.skalausaha;
+    pr.kode_identitas = pr.kdidentitas;
+    pr.keterangan = pr.ket;
+  });
 
   // Build relasi: attach PPL email from alokasi to biodata
   AppData.biodata.forEach(p => {
@@ -1727,7 +1800,7 @@ function exportProgresCSV() {
   const csv = [headers, ...rows].map(r => r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download='progres_pendataan.csv'; a.click();
+  const a = document.createElement('a'); a.href=url; a.download='progres_lapangan.csv'; a.click();
   showToast('✓ Data berhasil diexport!');
 }
 

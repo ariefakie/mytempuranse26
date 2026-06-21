@@ -431,11 +431,11 @@ async function getAlokasiByEmail(email) {
 }
 
 async function getAllProgres() {
-  return await supabaseGet('progres_pendataan', '?select=*&limit=50000');
+  return await supabaseGet('progres_lapangan', '?select=*&limit=50000');
 }
 
 async function getProgresByPetugas(petugasEmail) {
-  return await supabaseGet('progres_pendataan', `?email=eq.${encodeURIComponent(petugasEmail)}&select=*`);
+  return await supabaseGet('progres_lapangan', `?email=eq.${encodeURIComponent(petugasEmail)}&select=*`);
 }
 
 // ===================================================
