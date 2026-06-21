@@ -655,6 +655,25 @@ function renderDashboard() {
       </div>
     </div>
 
+    <!-- ROW: SLS Statistics by Status (Admin only) -->
+    ${CurrentUser?.role === 'admin' ? `
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header">
+        <div>
+          <div class="card-title">📊 Statistik SLS per Status</div>
+          <div class="card-sub">Rincian status listing per SLS untuk seluruh wilayah</div>
+        </div>
+        <button class="btn-sm btn-ghost-sm" onclick="navigateTo('alokasi')">Filter SLS →</button>
+      </div>
+      <div id="slsStatsContainer" style="overflow-x:auto;">
+        <div style="padding:20px;text-align:center;color:var(--text-dim)">
+          <div class="spinner" style="margin:0 auto"></div>
+          <p style="margin-top:12px">Memuat statistik SLS...</p>
+        </div>
+      </div>
+    </div>
+    ` : ''}
+
     <!-- ROW: PML Summary Table (Admin only - not for PPL or PML) -->
     ${CurrentUser?.role === 'admin' ? `
     <div class="card" style="margin-bottom:20px">
@@ -769,6 +788,239 @@ function renderDashboard() {
       <td style="font-size:11px;color:var(--text-dim)">${formatPetugas(r.petugas)}</td>
     </tr>
   `).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text-dim)">Belum ada aktivitas</td></tr>';
+
+  // Render SLS Statistics
+  renderSLSStats();
+}
+
+// ====================================================
+// SLS STATISTICS BY STATUS
+// ====================================================
+function renderSLSStats() {
+  const container = document.getElementById('slsStatsContainer');
+  if (!container) return;
+
+  // Build SLS lookup from alokasi
+  const slsMap = {};
+  AppData.alokasi.forEach(a => {
+    const key = `${a.kddesa}-${a.kdsls}`;
+    if (!slsMap[key]) {
+      slsMap[key] = {
+        idsubsls: a.idsubsls,
+        nmdes: a.nmdes,
+        nmsls: a.nmsls,
+        pml: a.pml,
+        ppl: a.ppl,
+        email_pencacah: a.email_pencacah,
+        umkm: a.umkm || 0,
+        fasih: a.fasih || 0,
+        // Status counters
+        total: 0,
+        open: 0,
+        draft: 0,
+        submitted: 0,
+        approved: 0,
+        rejected: 0,
+        revoked: 0
+      };
+    }
+  });
+
+  // Match progres to SLS
+  AppData.progres.forEach(pr => {
+    const key = `${pr.kode_desa}-${pr.kode_sls}`;
+    if (slsMap[key]) {
+      const sls = slsMap[key];
+      sls.total++;
+      const status = pr.status?.toLowerCase() || '';
+      if (status === 'open') sls.open++;
+      else if (status === 'draft') sls.draft++;
+      else if (status === 'submitted by pencacah') sls.submitted++;
+      else if (status === 'approved by pengawas') sls.approved++;
+      else if (status === 'rejected by pengawas') sls.rejected++;
+      else if (status === 'revoked by pengawas') sls.revoked++;
+      else sls.open++; // Default to open
+    }
+  });
+
+  // Convert to array and sort by progress percentage
+  const slsList = Object.values(slsMap)
+    .filter(s => s.total > 0) // Only show SLS with data
+    .map(s => ({
+      ...s,
+      selesai: s.total - s.open,
+      pct: s.total > 0 ? ((s.selesai / s.total) * 100).toFixed(1) : 0
+    }))
+    .sort((a, b) => parseFloat(b.pct) - parseFloat(a.pct));
+
+  if (slsList.length === 0) {
+    container.innerHTML = `
+      <div style="padding:40px;text-align:center;color:var(--text-dim)">
+        <p>Belum ada data progres yang terkait dengan SLS</p>
+      </div>
+    `;
+    return;
+  }
+
+  // Status colors
+  const statusColors = {
+    open: '#64748b',
+    draft: '#6366f1',
+    submitted: '#f59e0b',
+    approved: '#10b981',
+    rejected: '#ef4444',
+    revoked: '#8b5cf6'
+  };
+
+  // Render table
+  container.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr style="background:var(--bg-2);border-bottom:1px solid var(--border)">
+          <th style="padding:12px 8px;text-align:left">SLS</th>
+          <th style="padding:12px 8px;text-align:center">PPL</th>
+          <th style="padding:12px 8px;text-align:center;min-width:80px">Total</th>
+          <th style="padding:12px 8px;text-align:center;min-width:60px">Open</th>
+          <th style="padding:12px 8px;text-align:center;min-width:60px">Draft</th>
+          <th style="padding:12px 8px;text-align:center;min-width:80px">Submit</th>
+          <th style="padding:12px 8px;text-align:center;min-width:70px">Approve</th>
+          <th style="padding:12px 8px;text-align:center;min-width:70px">Reject</th>
+          <th style="padding:12px 8px;text-align:center;min-width:60px">Revoke</th>
+          <th style="padding:12px 8px;text-align:center;min-width:100px">Progress</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${slsList.slice(0, 50).map((sls, i) => `
+          <tr style="border-bottom:1px solid var(--border);cursor:pointer" onclick="showSLSDetailByKey('${sls.idsubsls}')">
+            <td style="padding:10px 8px">
+              <div style="font-weight:600;color:var(--text)">${sls.nmsls?.substring(0, 25) || '-'}</div>
+              <div style="font-size:11px;color:var(--text-dim)">${sls.nmdes} · ${sls.idsubsls}</div>
+            </td>
+            <td style="padding:10px 8px;text-align:center">
+              <span class="badge badge-info" style="font-size:10px">${sls.ppl?.split(' ')[0] || '-'}</span>
+            </td>
+            <td style="padding:10px 8px;text-align:center;font-weight:700">${sls.total.toLocaleString('id-ID')}</td>
+            <td style="padding:10px 8px;text-align:center">
+              <span style="color:${statusColors.open};font-weight:600">${sls.open.toLocaleString('id-ID')}</span>
+            </td>
+            <td style="padding:10px 8px;text-align:center">
+              <span style="color:${statusColors.draft};font-weight:600">${sls.draft.toLocaleString('id-ID')}</span>
+            </td>
+            <td style="padding:10px 8px;text-align:center">
+              <span style="color:${statusColors.submitted};font-weight:600">${sls.submitted.toLocaleString('id-ID')}</span>
+            </td>
+            <td style="padding:10px 8px;text-align:center">
+              <span style="color:${statusColors.approved};font-weight:600">${sls.approved.toLocaleString('id-ID')}</span>
+            </td>
+            <td style="padding:10px 8px;text-align:center">
+              <span style="color:${statusColors.rejected};font-weight:600">${sls.rejected.toLocaleString('id-ID')}</span>
+            </td>
+            <td style="padding:10px 8px;text-align:center">
+              <span style="color:${statusColors.revoked};font-weight:600">${sls.revoked.toLocaleString('id-ID')}</span>
+            </td>
+            <td style="padding:10px 8px;text-align:center;min-width:100px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="flex:1;height:6px;background:var(--bg-2);border-radius:3px;overflow:hidden">
+                  <div style="width:${sls.pct}%;height:100%;background:${parseFloat(sls.pct) > 50 ? '#10b981' : '#f59e0b'};border-radius:3px"></div>
+                </div>
+                <span style="font-size:11px;font-weight:700;min-width:40px">${sls.pct}%</span>
+              </div>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    ${slsList.length > 50 ? `
+      <div style="padding:16px;text-align:center;color:var(--text-dim);font-size:13px">
+        Menampilkan 50 dari ${slsList.length} SLS · <a href="#" onclick="navigateTo('alokasi');return false" style="color:var(--primary)">Lihat semua di Alokasi Petugas →</a>
+      </div>
+    ` : `
+      <div style="padding:16px;text-align:center;color:var(--text-dim);font-size:12px">
+        Total ${slsList.length} SLS dengan data progres
+      </div>
+    `}
+  `;
+}
+
+// Show SLS detail modal
+window.showSLSDetailByKey = function(idsubsls) {
+  const alokasi = AppData.alokasi.find(a => a.idsubsls === idsubsls);
+  if (!alokasi) return;
+
+  const slsProg = AppData.progres.filter(r =>
+    String(r.kode_sls).trim() === String(alokasi.kdsls).trim() &&
+    String(r.kode_desa).trim() === String(alokasi.kddesa).trim()
+  );
+
+  const statusCount = { open: 0, draft: 0, submitted: 0, approved: 0, rejected: 0, revoked: 0 };
+  slsProg.forEach(pr => {
+    const s = pr.status?.toLowerCase() || '';
+    if (s === 'open') statusCount.open++;
+    else if (s === 'draft') statusCount.draft++;
+    else if (s === 'submitted by pencacah') statusCount.submitted++;
+    else if (s === 'approved by pengawas') statusCount.approved++;
+    else if (s === 'rejected by pengawas') statusCount.rejected++;
+    else if (s === 'revoked by pengawas') statusCount.revoked++;
+    else statusCount.open++;
+  });
+
+  const total = slsProg.length;
+  const selesai = total - statusCount.open;
+  const pct = total > 0 ? ((selesai / total) * 100).toFixed(1) : 0;
+
+  openModal(`
+    <div class="modal-title">Detail SLS: ${alokasi.nmsls}</div>
+    <div class="modal-section">
+      <div class="modal-section-title">Informasi SLS</div>
+      ${modalRow('ID SLS', alokasi.idsubsls)}
+      ${modalRow('Desa', alokasi.nmdes)}
+      ${modalRow('Nama SLS', alokasi.nmsls)}
+      ${modalRow('PML', alokasi.pml)}
+      ${modalRow('PPL', alokasi.ppl)}
+      ${modalRow('UMKM Target', alokasi.umkm)}
+      ${modalRow('FASIH Target', alokasi.fasih)}
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Progres Pendataan</div>
+      ${modalRow('Total Listing', total.toLocaleString('id-ID'))}
+      ${modalRow('Selesai Diproses', `${selesai.toLocaleString('id-ID')} (${pct}%)`)}
+      ${modalRow('Belum Diproses', statusCount.open.toLocaleString('id-ID'))}
+      <div style="margin-top:12px">
+        <div class="progress-track" style="height:8px">
+          <div class="progress-fill" style="width:${pct}%;background:${parseFloat(pct) > 50 ? '#10b981' : '#f59e0b'}"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Breakdown Status</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <div style="padding:12px;background:rgba(100,116,139,0.1);border-radius:8px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:#64748b">${statusCount.open.toLocaleString('id-ID')}</div>
+          <div style="font-size:11px;color:var(--text-dim)">Open</div>
+        </div>
+        <div style="padding:12px;background:rgba(99,102,241,0.1);border-radius:8px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:#6366f1">${statusCount.draft.toLocaleString('id-ID')}</div>
+          <div style="font-size:11px;color:var(--text-dim)">Draft</div>
+        </div>
+        <div style="padding:12px;background:rgba(245,158,11,0.1);border-radius:8px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:#f59e0b">${statusCount.submitted.toLocaleString('id-ID')}</div>
+          <div style="font-size:11px;color:var(--text-dim)">Submitted</div>
+        </div>
+        <div style="padding:12px;background:rgba(16,185,129,0.1);border-radius:8px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:#10b981">${statusCount.approved.toLocaleString('id-ID')}</div>
+          <div style="font-size:11px;color:var(--text-dim)">Approved</div>
+        </div>
+        <div style="padding:12px;background:rgba(239,68,68,0.1);border-radius:8px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:#ef4444">${statusCount.rejected.toLocaleString('id-ID')}</div>
+          <div style="font-size:11px;color:var(--text-dim)">Rejected</div>
+        </div>
+        <div style="padding:12px;background:rgba(139,92,246,0.1);border-radius:8px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:#8b5cf6">${statusCount.revoked.toLocaleString('id-ID')}</div>
+          <div style="font-size:11px;color:var(--text-dim)">Revoked</div>
+        </div>
+      </div>
+    </div>
+  `);
 }
 
 // ====================================================
