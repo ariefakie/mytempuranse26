@@ -605,17 +605,6 @@ function renderDashboard() {
       </div>
     </div>
 
-    <!-- ROW: Progress per Desa (full width) -->
-    <div class="card" style="margin-bottom:20px">
-      <div class="card-header">
-        <div>
-          <div class="card-title">📍 Progress per Desa</div>
-          <div class="card-sub">Persentase listing diproses vs total per desa</div>
-        </div>
-      </div>
-      <div class="desa-progress-list" id="desaProgressList"></div>
-    </div>
-
     <!-- ROW: SLS Statistics by Status (Admin only) - FULL WIDTH -->
     ${CurrentUser?.role === 'admin' ? `
     <div class="card" style="margin-bottom:20px">
@@ -634,87 +623,6 @@ function renderDashboard() {
       </div>
     </div>
     ` : ''}
-
-    <!-- ROW: PML Summary + Recent Activity (Admin only) -->
-    ${CurrentUser?.role === 'admin' ? `
-    <div class="grid-2" style="margin-bottom:20px">
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">👥 Rekapitulasi per PML</div>
-            <div class="card-sub">Beban tugas 6 Pemeriksa Lapangan</div>
-          </div>
-          <button class="btn-sm btn-ghost-sm" onclick="navigateTo('alokasi')">Detail →</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr>
-              <th>#</th><th>Nama PML</th><th>PPL</th><th>SLS</th><th>UMKM</th><th>FASIH</th>
-            </tr></thead>
-            <tbody id="pmlSummaryBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">📋 Aktivitas Terbaru</div>
-            <div class="card-sub">Listing yang baru diproses</div>
-          </div>
-          <button class="btn-sm btn-ghost-sm" onclick="navigateTo('progres')">Semua →</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr>
-              <th>Desa</th><th>SLS</th><th>Nama</th><th>Skala</th><th>Status</th>
-            </tr></thead>
-            <tbody id="recentBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    ` : ''}
-
-    <!-- ROW: Status Pendataan (Donut - Admin only) -->
-    ${CurrentUser?.role === 'admin' ? `
-    <div class="card" style="margin-bottom:20px">
-      <div class="card-header">
-        <div>
-          <div class="card-title">📈 Distribusi Status Pendataan</div>
-          <div class="card-sub">Breakdown seluruh listing berdasarkan status</div>
-        </div>
-      </div>
-      <div class="donut-wrap">
-        <svg viewBox="0 0 120 120" width="120" height="120" style="flex-shrink:0">
-          ${buildDonut([
-            { val: open, color: '#64748b' },
-            { val: submitted, color: '#f59e0b' },
-            { val: draft, color: '#6366f1' },
-            { val: approved, color: '#10b981' },
-            { val: rejected, color: '#ef4444' },
-            { val: revoked, color: '#8b5cf6' },
-          ], total)}
-        </svg>
-        <div class="donut-legend">
-          ${[
-            {label:'Open', val:open, color:'#64748b'},
-            {label:'Submitted', val:submitted, color:'#f59e0b'},
-            {label:'Draft', val:draft, color:'#6366f1'},
-            {label:'Approved', val:approved, color:'#10b981'},
-            {label:'Rejected', val:rejected, color:'#ef4444'},
-            {label:'Revoked', val:revoked, color:'#8b5cf6'},
-          ].map(l => `
-            <div class="legend-item">
-              <span class="legend-dot" style="background:${l.color}"></span>
-              <span>${l.label}</span>
-              <span class="legend-val">${l.val.toLocaleString('id-ID')}</span>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    </div>
-    ` : ''}
   `;
 
   // Animate counters
@@ -722,74 +630,6 @@ function renderDashboard() {
   animateValue('ctr-selesai', selesai);
   animateValue('ctr-open', open);
   animateValue('ctr-petugas', ScopedData.biodata.length);
-
-  // Desa progress list
-  const desaProgressEl = document.getElementById('desaProgressList');
-  desaProgressEl.innerHTML = desaList.map(([ desa, d ], i) => {
-    const pct = ((d.selesai / d.total)*100).toFixed(1);
-    return `
-      <div class="desa-item">
-        <div class="desa-header">
-          <span class="desa-name">${desa}</span>
-          <span class="desa-counts">${d.selesai}/${d.total} <span style="color:var(--text-dim)">(${pct}%)</span></span>
-        </div>
-        <div class="progress-track">
-          <div class="progress-fill" style="width:0%;background:${COLORS[i%COLORS.length]}" data-w="${pct}"></div>
-        </div>
-      </div>`;
-  }).join('');
-
-  // Animate progress bars
-  setTimeout(() => {
-    document.querySelectorAll('.progress-fill[data-w]').forEach(el => {
-      el.style.width = el.dataset.w + '%';
-    });
-  }, 100);
-
-  // PML summary (Admin only)
-  if (CurrentUser?.role === 'admin') {
-    const pmlList = ScopedData.biodata.filter(b => b.posisi?.includes('PML'));
-    const pmlBody = document.getElementById('pmlSummaryBody');
-    if (pmlBody) {
-      pmlBody.innerHTML = pmlList.length ? pmlList.map((pml, i) => {
-    const ppls = AppData.pml_map[pml.nama] || [];
-    const pmlAlok = ScopedData.alokasi.filter(a => a.pml === pml.nama);
-    const umkm = pmlAlok.reduce((s,a)=>s+(a.umkm||0),0);
-    const fasih = pmlAlok.reduce((s,a)=>s+(a.fasih||0),0);
-    return `<tr>
-      <td><span class="badge badge-primary">${i+1}</span></td>
-      <td class="td-primary">
-        <div style="display:flex;align-items:center;gap:8px">
-          <div style="width:32px;height:32px;border-radius:8px;background:${COLORS[i%COLORS.length]};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:13px;flex-shrink:0">${pml.nama[0]}</div>
-          <div>
-            <div>${pml.nama}</div>
-            <div style="font-size:11px;color:var(--text-dim);font-weight:400">${pml.email||''}</div>
-          </div>
-        </div>
-      </td>
-      <td><span class="badge badge-info">${ppls.length}</span></td>
-      <td><strong>${pmlAlok.length}</strong></td>
-      <td><span class="badge badge-warning">${umkm.toLocaleString('id-ID')}</span></td>
-      <td>${fasih.toLocaleString('id-ID')}</td>
-      <td><button class="btn-sm btn-ghost-sm" onclick="showPMLDetail('${pml.nama.replace(/'/g,"\\'")}')">Detail</button></td>
-      </tr>`;
-      }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:20px">Tidak ada data PML di wilayah ini</td></tr>';
-    }
-  }
-
-  // Recent activity: non-open first (scoped)
-  const nonOpen = ScopedData.progres.filter(r => r.status !== 'open').slice(0, 20);
-  const recentBody = document.getElementById('recentBody');
-  recentBody.innerHTML = nonOpen.map(r => `
-    <tr>
-      <td class="td-primary">${r.desa}</td>
-      <td style="font-size:11px;color:var(--text-dim)">${r.nama_sls?.substring(0,30)||'-'}</td>
-      <td>${r.nama_usaha?.substring(0,25)||'-'}</td>
-      <td><span class="badge badge-info">${r.skala_usaha?.split('/')[0]?.trim()||'-'}</span></td>
-      <td>${getStatusBadge(r.status)}</td>
-      <td style="font-size:11px;color:var(--text-dim)">${formatPetugas(r.petugas)}</td>
-    </tr>
-  `).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text-dim)">Belum ada aktivitas</td></tr>';
 
   // Render SLS Statistics
   renderSLSStats();
